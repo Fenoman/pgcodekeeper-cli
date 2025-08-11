@@ -1,0 +1,14 @@
+name: Release Workflow
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v4
