@@ -22,11 +22,14 @@ jobs:
       - name: build
         run: mvn -B clean package -DskipTests
 
+      - name: set version
+        run: echo "RELEASE_VERSION=$(echo ${GITHUB_REF#refs/*/} | cut -c 2-)" >> $GITHUB_ENV
+
       - name: set cli build name for zip
-        run: echo "CLI_BUILD_ZIP=pgCodeKeeper-cli-${{ env.RELEASE_VERSION }}.zip" >> $GITHUB_ENV
+        run: echo "CLI_BUILD_ZIP=pgcodekeeper-cli-${{ env.RELEASE_VERSION }}.zip" >> $GITHUB_ENV
 
       - name: set cli build name for jar
-        run: echo "CLI_BUILD_JAR=pgCodeKeeper-cli-${{ env.RELEASE_VERSION }}.jar" >> $GITHUB_ENV
+        run: echo "CLI_BUILD_JAR=pgcodekeeper-cli-${{ env.RELEASE_VERSION }}.jar" >> $GITHUB_ENV
 
       - name: create GitHub release
         id: create_release
