@@ -19,16 +19,15 @@ import org.pgcodekeeper.cli.exception.LibraryObjectDuplicationException;
 import org.pgcodekeeper.cli.localizations.Messages;
 import org.pgcodekeeper.core.PgCodekeeperException;
 import org.pgcodekeeper.core.PgDiff;
+import org.pgcodekeeper.core.api.DatabaseFactory;
+import org.pgcodekeeper.core.api.PgCodeKeeperApi;
 import org.pgcodekeeper.core.ignoreparser.IgnoreParser;
-import org.pgcodekeeper.core.loader.*;
-import org.pgcodekeeper.core.model.difftree.DiffTree;
-import org.pgcodekeeper.core.model.difftree.IgnoreList;
+import org.pgcodekeeper.core.loader.FullAnalyze;
+import org.pgcodekeeper.core.loader.LibraryLoader;
+import org.pgcodekeeper.core.loader.ProjectLoader;
 import org.pgcodekeeper.core.model.difftree.IgnoreSchemaList;
-import org.pgcodekeeper.core.model.difftree.TreeElement;
-import org.pgcodekeeper.core.model.exporter.ModelExporter;
 import org.pgcodekeeper.core.schema.AbstractDatabase;
 import org.pgcodekeeper.core.schema.PgOverride;
-import org.pgcodekeeper.core.utils.ProjectUpdater;
 import org.pgcodekeeper.core.xmlstore.DependenciesXmlStore;
 
 import java.io.IOException;
@@ -36,9 +35,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 
-
 public final class PgDiffCli extends PgDiff {
-
 
     private final CliArgs arguments;
 
@@ -49,51 +46,22 @@ public final class PgDiffCli extends PgDiff {
 
     public void updateProject()
             throws IOException, InterruptedException, PgCodekeeperException {
-
         AbstractDatabase oldDatabase = loadOldDatabaseWithLibraries();
         AbstractDatabase newDatabase = loadNewDatabaseWithLibraries();
-        IgnoreList ignoreList = getIgnoreList();
-        TreeElement root = DiffTree.create(oldDatabase, newDatabase, null);
-        root.setAllChecked();
 
-        List<TreeElement> selected = getSelectedElements(root, ignoreList);
-
-        new ProjectUpdater(newDatabase, oldDatabase, selected, arguments.getDbType(),
-                arguments.getOutCharsetName(), Paths.get(arguments.getOutputTarget()),
-                false, settings).updatePartial();
+        PgCodeKeeperApi.update(settings, oldDatabase, newDatabase,
+                arguments.getOutputTarget(), arguments.getIgnoreLists(), null);
     }
 
     public void exportProject() throws IOException, InterruptedException, PgCodekeeperException {
         AbstractDatabase newDb = loadNewDatabase();
-        TreeElement root = DiffTree.create(newDb, null, null);
-        root.setAllChecked();
-
-        IgnoreList ignoreList = getIgnoreList();
-        List<TreeElement> selected = getSelectedElements(root, ignoreList);
-        new ModelExporter(Paths.get(arguments.getOutputTarget()), newDb, null,
-                arguments.getDbType(), selected, arguments.getOutCharsetName(), settings).exportProject();
-    }
-
-    private IgnoreList getIgnoreList() throws IOException {
-        IgnoreList ignoreList = new IgnoreList();
-        IgnoreParser ignoreParser = new IgnoreParser(ignoreList);
-        for (String listFilename : arguments.getIgnoreLists()) {
-            ignoreParser.parse(Paths.get(listFilename));
-        }
-        return ignoreList;
+        PgCodeKeeperApi.export(settings, newDb, arguments.getOutputTarget(), arguments.getIgnoreLists(), null);
     }
 
     public String createDiff() throws InterruptedException, IOException, PgCodekeeperException {
         AbstractDatabase oldDatabase = loadOldDatabaseWithLibraries();
         AbstractDatabase newDatabase = loadNewDatabaseWithLibraries();
-        IgnoreList ignoreList = new IgnoreList();
-        IgnoreParser ignoreParser = new IgnoreParser(ignoreList);
-
-        for (String listFilename : arguments.getIgnoreLists()) {
-            ignoreParser.parse(Paths.get(listFilename));
-        }
-
-        return diff(oldDatabase, newDatabase, ignoreList);
+        return PgCodeKeeperApi.diff(settings, oldDatabase, newDatabase, arguments.getIgnoreLists());
     }
 
     public AbstractDatabase loadNewDatabaseWithLibraries()
@@ -176,16 +144,12 @@ public final class PgDiffCli extends PgDiff {
 
     private AbstractDatabase loadNewDatabase()
             throws IOException, InterruptedException, PgCodekeeperException {
-        AbstractDatabase db = loadDatabaseSchema(arguments.getNewSrcFormat(), arguments.getNewSrc());
-        assertErrors();
-        return db;
+        return loadDatabaseSchema(arguments.getNewSrcFormat(), arguments.getNewSrc());
     }
 
     private AbstractDatabase loadOldDatabase()
             throws IOException, InterruptedException, PgCodekeeperException {
-        AbstractDatabase db = loadDatabaseSchema(arguments.getOldSrcFormat(), arguments.getOldSrc());
-        assertErrors();
-        return db;
+        return loadDatabaseSchema(arguments.getOldSrcFormat(), arguments.getOldSrc());
     }
 
     /**
@@ -198,24 +162,20 @@ public final class PgDiffCli extends PgDiff {
      * @return the loaded database
      */
     private AbstractDatabase loadDatabaseSchema(SourceFormat format, String srcPath)
-            throws InterruptedException, IOException {
+            throws InterruptedException, IOException, PgCodekeeperException {
         LOG.info(Messages.PgDiffCli_log_load_ignored_schemas);
         IgnoreSchemaList ignoreSchemaList = new IgnoreSchemaList();
         IgnoreParser ignoreParser = new IgnoreParser(ignoreSchemaList);
         if (arguments.getIgnoreSchemaList() != null) {
             ignoreParser.parse(Paths.get(arguments.getIgnoreSchemaList()));
         }
-        DatabaseLoader loader = switch (format) {
-        case DB -> LoaderFactory.createJdbcLoader(settings, srcPath, ignoreSchemaList);
-        case DUMP -> new PgDumpLoader(Paths.get(srcPath), settings);
-        case PARSED -> new ProjectLoader(srcPath, settings, null, errors, ignoreSchemaList);
-        };
+        var factory = new DatabaseFactory(settings, arguments.isIgnoreErrors(), false);
 
-        try {
-            return loader.load();
-        } finally {
-            errors.addAll(loader.getErrors());
-        }
+        return switch (format) {
+        case DB -> factory.loadFromJdbc(srcPath, arguments.getIgnoreSchemaList());
+        case DUMP -> factory.loadFromDump(srcPath);
+        case PARSED -> factory.loadFromProject(srcPath, arguments.getIgnoreSchemaList());
+        };
     }
 
     private void assertErrors() throws PgCodekeeperException {

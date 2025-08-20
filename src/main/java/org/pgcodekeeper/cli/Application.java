@@ -19,6 +19,22 @@
  *******************************************************************************/
 package org.pgcodekeeper.cli;
 
+import org.kohsuke.args4j.CmdLineException;
+import org.pgcodekeeper.cli.localizations.Messages;
+import org.pgcodekeeper.core.DangerStatement;
+import org.pgcodekeeper.core.PgCodekeeperException;
+import org.pgcodekeeper.core.loader.JdbcRunner;
+import org.pgcodekeeper.core.loader.TokenLoader;
+import org.pgcodekeeper.core.loader.UrlJdbcConnector;
+import org.pgcodekeeper.core.model.graph.DepcyFinder;
+import org.pgcodekeeper.core.model.graph.InsertWriter;
+import org.pgcodekeeper.core.parsers.antlr.base.ScriptParser;
+import org.pgcodekeeper.core.schema.AbstractDatabase;
+import org.pgcodekeeper.core.utils.FileUtils;
+import org.pgcodekeeper.core.utils.UnixPrintWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -29,22 +45,6 @@ import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.kohsuke.args4j.CmdLineException;
-import org.pgcodekeeper.cli.localizations.Messages;
-import org.pgcodekeeper.core.PgCodekeeperException;
-import org.pgcodekeeper.core.UnixPrintWriter;
-import org.pgcodekeeper.core.loader.JdbcRunner;
-import org.pgcodekeeper.core.loader.TokenLoader;
-import org.pgcodekeeper.core.loader.UrlJdbcConnector;
-import org.pgcodekeeper.core.model.graph.DepcyFinder;
-import org.pgcodekeeper.core.model.graph.InsertWriter;
-import org.pgcodekeeper.core.parsers.antlr.ScriptParser;
-import org.pgcodekeeper.core.schema.AbstractDatabase;
-import org.pgcodekeeper.core.utils.FileUtils;
-import org.pgcodekeeper.core.DangerStatement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Compares two PostgreSQL dumps and outputs information about differences in
