@@ -413,7 +413,7 @@ public class CliArgs implements ISettings {
     }
 
     @Override
-    public boolean isConstraintNotValid() {
+    public boolean isGenerateConstraintNotValid() {
         return generateConstraintNotValid;
     }
 
