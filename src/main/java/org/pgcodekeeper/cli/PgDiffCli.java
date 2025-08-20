@@ -21,11 +21,9 @@ import org.pgcodekeeper.core.PgCodekeeperException;
 import org.pgcodekeeper.core.PgDiff;
 import org.pgcodekeeper.core.api.DatabaseFactory;
 import org.pgcodekeeper.core.api.PgCodeKeeperApi;
-import org.pgcodekeeper.core.ignoreparser.IgnoreParser;
 import org.pgcodekeeper.core.loader.FullAnalyze;
 import org.pgcodekeeper.core.loader.LibraryLoader;
 import org.pgcodekeeper.core.loader.ProjectLoader;
-import org.pgcodekeeper.core.model.difftree.IgnoreSchemaList;
 import org.pgcodekeeper.core.schema.AbstractDatabase;
 import org.pgcodekeeper.core.schema.PgOverride;
 import org.pgcodekeeper.core.xmlstore.DependenciesXmlStore;
@@ -163,14 +161,7 @@ public final class PgDiffCli extends PgDiff {
      */
     private AbstractDatabase loadDatabaseSchema(SourceFormat format, String srcPath)
             throws InterruptedException, IOException, PgCodekeeperException {
-        LOG.info(Messages.PgDiffCli_log_load_ignored_schemas);
-        IgnoreSchemaList ignoreSchemaList = new IgnoreSchemaList();
-        IgnoreParser ignoreParser = new IgnoreParser(ignoreSchemaList);
-        if (arguments.getIgnoreSchemaList() != null) {
-            ignoreParser.parse(Paths.get(arguments.getIgnoreSchemaList()));
-        }
         var factory = new DatabaseFactory(settings, arguments.isIgnoreErrors(), false);
-
         return switch (format) {
         case DB -> factory.loadFromJdbc(srcPath, arguments.getIgnoreSchemaList());
         case DUMP -> factory.loadFromDump(srcPath);
