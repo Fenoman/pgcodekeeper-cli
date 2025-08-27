@@ -140,7 +140,6 @@ public class Messages {
 
 
     static {
-        // TODO replace with ENUM
         ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_NAME);
         for (String key : bundle.keySet()) {
             try {

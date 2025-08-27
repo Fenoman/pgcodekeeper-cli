@@ -17,14 +17,13 @@ package org.pgcodekeeper.cli.exception;
 
 import org.pgcodekeeper.core.schema.PgOverride;
 
-import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
 
 public class LibraryObjectDuplicationException extends RuntimeException {
 
-    private static final String ENTRY = "{0} {1} in {2} conflicts with object in {3}"; //$NON-NLS-1$
+    private static final String ENTRY = "%s %s in %s conflicts with object in %s"; //$NON-NLS-1$
 
     private static final long serialVersionUID = -4197153074585872486L;
 
@@ -51,7 +50,7 @@ public class LibraryObjectDuplicationException extends RuntimeException {
 
     public LibraryObjectDuplicationException(Collection<PgOverride> overrides) {
         super("Library conflicts:\n" + overrides.stream() //$NON-NLS-1$
-        .map(o -> MessageFormat.format(ENTRY, o.getType(), o.getName(), o.getOldPath(), o.getNewPath()))
+        .map(o -> ENTRY.formatted(o.getType(), o.getName(), o.getOldPath(), o.getNewPath()))
         .collect(Collectors.joining("\n"))); //$NON-NLS-1$
     }
 }
