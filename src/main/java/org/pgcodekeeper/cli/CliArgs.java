@@ -20,7 +20,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -805,14 +804,14 @@ public class CliArgs implements ISettings {
 
     private void badArgWithCorrectModes(boolean condition, String param, CliMode... modes) throws CmdLineException {
         if (condition && !containsInArray(mode, modes)) {
-            badArgs(MessageFormat.format(Messages.CliArgs_error_wrong_mode, param, mode));
+            badArgs(Messages.CliArgs_error_wrong_mode.formatted(param, mode));
         }
     }
 
     private void badArgWithWrongDbType(boolean condition, String arg, DatabaseType... wrongDbTypes)
             throws CmdLineException {
         if (condition && containsInArray(dbType, wrongDbTypes)) {
-            badArgs(MessageFormat.format(Messages.CliArgs_error_wrong_db_type, arg, dbType));
+            badArgs(Messages.CliArgs_error_wrong_db_type.formatted(arg, dbType));
         }
     }
 
@@ -840,13 +839,13 @@ public class CliArgs implements ISettings {
         new CmdLineParser(new CliArgs(), prop).printUsage(new OutputStreamWriter(buf, StandardCharsets.UTF_8),
                 new CliArgsLocalizationsBundle());
 
-        writer.println(MessageFormat.format(Messages.UsageHelp.replace("${tab}", "\t"), //$NON-NLS-1$ //$NON-NLS-2$
+        writer.println(Messages.UsageHelp.replace("${tab}", "\t").formatted( //$NON-NLS-1$ //$NON-NLS-2$
                 buf.toString(StandardCharsets.UTF_8),
                 DangerStatementOptionHandler.getMetaVariable() + '\n' + DbObjTypeOptionHandler.getMetaVariable()));
     }
 
     private void printVersion(PrintWriter writer) {
-        writer.println(MessageFormat.format(Messages.Version, Utils.getVersion()));
+        writer.println(Messages.Version.formatted(Utils.getVersion()));
     }
 
     private void listCharsets(PrintWriter writer) {

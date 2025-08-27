@@ -21,7 +21,6 @@ import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
-import java.text.MessageFormat;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
@@ -31,7 +30,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.pgcodekeeper.cli.localizations.Messages;
 
 class OutputTest {
-
     private static Stream<Arguments> generator() {
         return Stream.of(
                 Arguments.of(new UsageArgumentsProvider()),
@@ -132,7 +130,7 @@ class VersionArgumentsProvider extends ArgumentsProvider {
 
     @Override
     public String output() {
-        return MessageFormat.format(Messages.Version, Utils.getVersion()) + '\n';
+        return Messages.Version.formatted(Utils.getVersion()) + '\n';
     }
 }
 

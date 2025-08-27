@@ -42,7 +42,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.text.MessageFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -127,8 +126,9 @@ public final class Application {
                 if (!dangerTypes.isEmpty()) {
                     String dangerStmt = dangerTypes.stream().map(DangerStatement::name)
                             .collect(Collectors.joining(", ")); //$NON-NLS-1$
-                    LOG.warn(Messages.Main_log_contains_dangerous_statements, dangerStmt);
-                    String msg = MessageFormat.format(Messages.Main_danger_statements, dangerStmt);
+                    var logMsg = Messages.Main_log_contains_dangerous_statements.formatted(dangerStmt);
+                    LOG.warn(logMsg);
+                    String msg = Messages.Main_danger_statements.formatted(dangerStmt);
                     writer.println(msg);
                     if (encodedWriter != null) {
                         encodedWriter.println("-- " + msg); //$NON-NLS-1$
