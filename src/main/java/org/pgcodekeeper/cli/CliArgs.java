@@ -15,23 +15,7 @@
  *******************************************************************************/
 package org.pgcodekeeper.cli;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import org.kohsuke.args4j.Argument;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
-import org.kohsuke.args4j.Option;
-import org.kohsuke.args4j.OptionHandlerRegistry;
-import org.kohsuke.args4j.ParserProperties;
-
+import org.kohsuke.args4j.*;
 import org.pgcodekeeper.cli.localizations.CliArgsLocalizationsBundle;
 import org.pgcodekeeper.cli.localizations.Messages;
 import org.pgcodekeeper.cli.opthandlers.BooleanNoDefOptionHandler;
@@ -45,6 +29,16 @@ import org.pgcodekeeper.core.loader.UrlJdbcConnector;
 import org.pgcodekeeper.core.model.difftree.DbObjType;
 import org.pgcodekeeper.core.settings.ISettings;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Extension of {@link ISettings} with annotated CLI fields.
  * Override getters so that clients will access either CLI or parent fields
@@ -57,7 +51,7 @@ public class CliArgs implements ISettings {
         PARSE,
         GRAPH,
         INSERT,
-        VERIFY;
+        VERIFY
     }
 
     private static final String URL_START_JDBC = "jdbc:"; //$NON-NLS-1$
@@ -294,9 +288,6 @@ public class CliArgs implements ISettings {
 
     @Option(name="--verify-rule-set", metaVar=CliArgsLocalizationsBundle.PATH, usage="verify-rule-set")
     private String verifyRuleSetPath;
-
-    private SourceFormat oldSrcFormat;
-    private SourceFormat newSrcFormat;
 
     CliMode getMode() {
         return mode;
@@ -552,14 +543,6 @@ public class CliArgs implements ISettings {
         return null;
     }
 
-    public SourceFormat getNewSrcFormat() {
-        return newSrcFormat;
-    }
-
-    public SourceFormat getOldSrcFormat() {
-        return oldSrcFormat;
-    }
-
     @Override
     public CliArgs copy() {
         var args = new CliArgs();
@@ -595,9 +578,7 @@ public class CliArgs implements ISettings {
         args.libSafeMode = libSafeMode;
         args.mode = mode;
         args.newSrc = newSrc;
-        args.newSrcFormat = newSrcFormat;
         args.oldSrc = oldSrc;
-        args.oldSrcFormat = oldSrcFormat;
         args.outCharsetName = outCharsetName;
         args.outputTarget = outputTarget;
         args.postFilePath = postFilePath;
@@ -671,14 +652,8 @@ public class CliArgs implements ISettings {
             if (oldSrc == null || newSrc == null) {
                 badArgs(Messages.CliArgs_error_source_dest);
             }
-            oldSrcFormat = SourceFormat.parsePath(oldSrc);
         } else if (CliMode.PARSE == mode && projUpdate) {
             oldSrc = outputTarget;
-            oldSrcFormat = SourceFormat.parsePath(oldSrc);
-        }
-
-        if (CliMode.VERIFY != mode) {
-            newSrcFormat = SourceFormat.parsePath(newSrc);
         }
 
         return true;

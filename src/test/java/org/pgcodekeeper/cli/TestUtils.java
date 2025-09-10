@@ -42,6 +42,9 @@ public class TestUtils {
 
     public static Path getPathToResource(Class<?> clazz, String fileName) throws URISyntaxException {
         URL url = clazz.getResource(fileName);
+        if (url == null) {
+            throw new IllegalArgumentException("File not found %s".formatted(fileName));
+        }
         return Paths.get(url.toURI());
     }
 
