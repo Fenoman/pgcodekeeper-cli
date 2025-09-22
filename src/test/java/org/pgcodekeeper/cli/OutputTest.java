@@ -130,7 +130,7 @@ class VersionArgumentsProvider extends ArgumentsProvider {
 
     @Override
     public String output() {
-        return Messages.Version.formatted(Utils.getVersion()) + '\n';
+        return Utils.getVersion() + '\n';
     }
 }
 
