@@ -160,7 +160,7 @@ class CliArgsTest {
         String[] args = arguments.split(" ");
         CliArgs cliArgs = new CliArgs();
         try {
-            cliArgs.parse(null, args);
+            cliArgs.parse(args);
             Assertions.fail();
         } catch (CmdLineException e) {
             Assertions.assertEquals(message, e.getMessage());

@@ -43,6 +43,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -66,10 +67,9 @@ public final class Application {
      * @return success value
      */
     static boolean process(String[] args) {
-        PrintWriter writer = new PrintWriter(System.out, true);
         CliArgs arguments = new CliArgs();
         try {
-            if (!arguments.parse(writer, args)) {
+            if (!arguments.parse(args)) {
                 return true;
             }
             if (arguments.isClearLibCache()) {
@@ -77,16 +77,16 @@ public final class Application {
             }
 
             return switch (arguments.getMode()) {
-                case INSERT -> insert(writer, arguments);
+                case INSERT -> insert(arguments);
                 case PARSE -> parse(arguments);
-                case GRAPH -> graph(writer, arguments);
-                case VERIFY -> verify(writer, arguments);
+                case GRAPH -> graph(arguments);
+                case VERIFY -> verify(arguments);
                 default -> {
                     if (arguments.getOldSrc() == null || arguments.getNewSrc() == null) {
                         // clear cache
                         yield true;
                     }
-                    yield diff(writer, arguments);
+                    yield diff(arguments);
                 }
             };
         } catch (CmdLineException ex) {
@@ -105,7 +105,7 @@ public final class Application {
         }
     }
 
-    private static boolean diff(PrintWriter writer, CliArgs arguments)
+    private static boolean diff(CliArgs arguments)
             throws InterruptedException, IOException, SQLException {
         try (PrintWriter encodedWriter = getDiffWriter(arguments)) {
             var diff = new PgDiffCli(arguments);
@@ -129,7 +129,7 @@ public final class Application {
                     var logMsg = Messages.Main_log_contains_dangerous_statements.formatted(dangerStmt);
                     LOG.warn(logMsg);
                     String msg = Messages.Main_danger_statements.formatted(dangerStmt);
-                    writer.println(msg);
+                    writeToConsole(msg);
                     if (encodedWriter != null) {
                         encodedWriter.println("-- " + msg); //$NON-NLS-1$
                     }
@@ -150,7 +150,7 @@ public final class Application {
                 LOG.info(Messages.Main_log_apply_migration_script);
                 new JdbcRunner().runBatches(new UrlJdbcConnector(url), parser.batch(), null);
             } else if (encodedWriter == null) {
-                writer.println(text);
+                writeToConsole(text);
             }
         }
 
@@ -183,7 +183,7 @@ public final class Application {
         return true;
     }
 
-    private static boolean insert(PrintWriter writer, CliArgs arguments)
+    private static boolean insert(CliArgs arguments)
             throws IOException, InterruptedException, SQLException {
         var diff = new PgDiffCli(arguments);
         AbstractDatabase db;
@@ -208,7 +208,7 @@ public final class Application {
                 new JdbcRunner().runBatches(new UrlJdbcConnector(url),
                         new ScriptParser("CLI", script, arguments).batch(), null); //$NON-NLS-1$
             } else if (pw == null) {
-                writer.println(script);
+                writeToConsole(script);
             }
         }
 
@@ -216,7 +216,7 @@ public final class Application {
         return true;
     }
 
-    private static boolean graph(PrintWriter writer, CliArgs arguments) throws IOException, InterruptedException {
+    private static boolean graph(CliArgs arguments) throws IOException, InterruptedException {
         var diff = new PgDiffCli(arguments);
         AbstractDatabase d;
         try {
@@ -230,27 +230,28 @@ public final class Application {
                 arguments.getGraphFilterTypes(), arguments.isGraphInvertFilter(), d, arguments.getGraphNames());
 
         try (PrintWriter pw = getDiffWriter(arguments)) {
-            var w = pw != null ? pw : writer;
-            for (String dep : dependencies) {
-                w.println(dep);
-            }
+            Consumer<String> consumer = pw != null ? pw::println : Application::writeToConsole;
+            dependencies.forEach(consumer);
         }
 
         LOG.info(Messages.Main_log_succes_finish);
         return true;
     }
 
-    private static boolean verify(PrintWriter writer, CliArgs arguments)
+    private static boolean verify(CliArgs arguments)
             throws IOException, InterruptedException {
         Path path = Paths.get(arguments.getVerifyRuleSetPath());
         LOG.info(Messages.Main_log_start_code_verify);
         List<Object> errors = TokenLoader.verify(arguments, path, arguments.getVerifySources());
-        if (!errors.isEmpty()) {
-            errors.forEach(writer::println);
-            return false;
+        if (errors.isEmpty()) {
+            LOG.info(Messages.Main_log_finish_code_verify);
+            return true;
         }
-        LOG.info(Messages.Main_log_finish_code_verify);
-        return true;
+
+        for (Object error : errors) {
+            writeToConsole(error.toString());
+        }
+        return false;
     }
 
     private static void clearCache() throws IOException {
@@ -265,10 +266,14 @@ public final class Application {
         }
     }
 
+    private static void writeToConsole(String message) {
+        System.out.println(message);
+    }
+
     private static void writeMessage(Object message) {
         String msg = message.toString();
         LOG.info(msg);
-        System.out.println(msg);
+        writeToConsole(msg);
     }
 
     private static void writeError(Object message) {

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- Fixed encoding of text output to console.
 - Fixed reading logic when xml file is missing.
 - Fixed a race condition when loading a library from an archive.
 - Fixed parser rule for floating point constants for MS SQL.

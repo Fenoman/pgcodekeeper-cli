@@ -31,7 +31,6 @@ import org.pgcodekeeper.core.settings.ISettings;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -611,13 +610,12 @@ public class CliArgs implements ISettings {
     /**
      * Parses command line arguments or outputs instructions.
      *
-     * @param writer writer to be used for info output
      * @param args   array of arguments
      *
      * @return true if arguments were parsed and execution can continue,
      *         otherwise false
      */
-    public boolean parse(PrintWriter writer, String[] args) throws CmdLineException {
+    public boolean parse(String[] args) throws CmdLineException {
         if (args.length != 0) {
             new CmdLineParser(this).parseArgument(args);
         } else {
@@ -625,15 +623,15 @@ public class CliArgs implements ISettings {
             zhelp = true;
         }
         if (zhelp) {
-            printUsage(writer);
+            printUsage();
             return false;
         }
         if (zversion) {
-            printVersion(writer);
+            printVersion();
             return false;
         }
         if (zlistCharsets) {
-            listCharsets(writer);
+            listCharsets();
             return false;
         }
 
@@ -801,7 +799,7 @@ public class CliArgs implements ISettings {
         return dbType;
     }
 
-    private void printUsage(PrintWriter writer) {
+    private void printUsage() {
         // fix defaults for options like help and other 0-arg booleans
         OptionHandlerRegistry.getRegistry().registerHandler(Boolean.class, BooleanNoDefOptionHandler.class);
         OptionHandlerRegistry.getRegistry().registerHandler(boolean.class, BooleanNoDefOptionHandler.class);
@@ -814,17 +812,21 @@ public class CliArgs implements ISettings {
         new CmdLineParser(new CliArgs(), prop).printUsage(new OutputStreamWriter(buf, StandardCharsets.UTF_8),
                 new CliArgsLocalizationsBundle());
 
-        writer.println(Messages.UsageHelp.replace("${tab}", "\t").formatted( //$NON-NLS-1$ //$NON-NLS-2$
+        writeToConsole(Messages.UsageHelp.replace("${tab}", "\t").formatted( //$NON-NLS-1$ //$NON-NLS-2$
                 buf.toString(StandardCharsets.UTF_8),
                 DangerStatementOptionHandler.getMetaVariable() + '\n' + DbObjTypeOptionHandler.getMetaVariable()));
     }
 
-    private void printVersion(PrintWriter writer) {
-        writer.println(Messages.Version.formatted(Utils.getVersion()));
+    private void writeToConsole(String message) {
+        System.out.println(message);
     }
 
-    private void listCharsets(PrintWriter writer) {
-        Charset.availableCharsets().keySet().forEach(writer::println);
+    private void printVersion() {
+        writeToConsole(Utils.getVersion());
+    }
+
+    private void listCharsets() {
+        Charset.availableCharsets().keySet().forEach(this::writeToConsole);
     }
 
     private <T> boolean containsInArray(T element, T[] elements) {
