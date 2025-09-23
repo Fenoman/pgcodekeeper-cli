@@ -11,6 +11,16 @@
 
 ### Изменено
 
+### Исправлено
+
+## [11.2.0] - 2025-09-23
+
+### Добавлено
+
+- Добавлен анализ функций, возвращающих тип RECORD.
+
+### Изменено
+
 - Все локализованные сообщения приведены к единому стилю.
 
 ### Исправлено
@@ -34,5 +44,6 @@
 - Исправлена ошибка с работой настроек при сохранении объектов в проект.
 - Исправлены ложные различия при игнорировании порядка колонок таблицы.
 
-[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v11.0.0...HEAD
+[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v11.2.0...HEAD
+[11.2.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v11.0.0...v11.2.0
 [11.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/releases/tag/v11.0.0

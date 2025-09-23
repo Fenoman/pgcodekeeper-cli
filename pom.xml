@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.pgcodekeeper</groupId>
     <artifactId>pgcodekeeper-cli</artifactId>
-    <version>11.0.0</version>
+    <version>11.2.0</version>
     <packaging>jar</packaging>
 
     <name>pgcodekeeper-cli</name>
@@ -47,7 +47,7 @@
         <dependency>
             <groupId>org.pgcodekeeper</groupId>
             <artifactId>pgcodekeeper-core</artifactId>
-            <version>11.1.0</version>
+            <version>11.2.0</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
