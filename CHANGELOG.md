@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+### Removed
+
+- Removed deprecated `--parse`, `--graph`, `--insert` parameters.
+
 ## [11.2.0] - 2025-09-23
 
 ### Added
