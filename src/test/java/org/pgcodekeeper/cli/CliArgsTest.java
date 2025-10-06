@@ -24,25 +24,25 @@ class CliArgsTest {
 
     @ParameterizedTest(name = "{0}")
     @CsvSource(delimiter = ';', value = {
-            "--parse;" +
-                    "option \"--parse\" requires the option(s) [-o];",
+            "--mode PARSE;" +
+                    "Please specify SOURCE.",
 
-            "--parse -o;" +
+            "--mode PARSE -o;" +
                     "Option \"-o (--output)\" takes an operand",
 
-            "--parse -s filename -t filename -o filename;" +
-                    "option \"-t (--target)\" cannot be used with the option(s) [--graph, --parse, --insert]",
+            "--mode PARSE -s filename -t filename -o filename;" +
+                    "-t (--target) cannot be used with --mode PARSE option",
 
-            "--graph --graph-name public.test --db-type MS jdbc:postgresql:q;" +
+            "--mode graph --graph-name public.test --db-type MS jdbc:postgresql:q;" +
                     "Cannot work with PG database as MS project.",
 
-            "--graph --graph-name dbo.test jdbc:sqlserver:f;"
+            "--mode graph --graph-name dbo.test jdbc:sqlserver:f;"
                     + "Cannot work with MS database as PG project.",
 
-            "--graph --graph-name public.test jdbc:postgresql:q jdbc:postgresql:q2;"
+            "--mode graph --graph-name public.test jdbc:postgresql:q jdbc:postgresql:q2;"
                     + "-t (--target) cannot be used with --mode GRAPH option",
 
-            "--graph --graph-name test;"
+            "--mode graph --graph-name test;"
                     + "Please specify SOURCE.",
 
             "--mode PARSE --graph-filter-object COLUMN jdbc:postgresql:q;"
@@ -152,9 +152,6 @@ class CliArgsTest {
 
             "--mode INSERT filename;"
                     + "Source must be a database.",
-
-            "--parse --mode INSERT -o filename;"
-                    + "option \"--parse\" cannot be used with the option(s) [--mode]",
     })
     void badArgsTest(String arguments, String message) {
         String[] args = arguments.split(" ");
