@@ -47,9 +47,6 @@ public final class CliArgsLocalizationsBundle extends ListResourceBundle {
             {"Version", Messages.CliArgs_Version}, //$NON-NLS-1$
             {"ListCharsets", Messages.CliArgs_list_charsets}, //$NON-NLS-1$
             {"ClearLibCache", Messages.CliArgs_clear_lib_cache}, //$NON-NLS-1$
-            {"parse", Messages.CliArgs_parse}, //$NON-NLS-1$
-            {"graph", Messages.CliArgs_graph}, //$NON-NLS-1$
-            {"insert", Messages.CliArgs_insert}, //$NON-NLS-1$
             {"mode", Messages.CliArgs_mode}, //$NON-NLS-1$
             {"source", Messages.CliArgs_source}, //$NON-NLS-1$
             {"target", Messages.CliArgs_target}, //$NON-NLS-1$

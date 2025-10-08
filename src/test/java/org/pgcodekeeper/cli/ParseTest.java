@@ -60,7 +60,7 @@ class ParseTestArgumentsProvider extends ArgumentsProvider {
     @Override
     public String[] args() throws URISyntaxException, IOException {
         Path db = TestUtils.getPathToResource(ParseTest.class, resName);
-        return new String[] { "--parse", "-o", getParseResultDir().get().toAbsolutePath().toString(),
+        return new String[] { "--mode", "parse", "-o", getParseResultDir().get().toAbsolutePath().toString(),
                 db.toAbsolutePath().toString() };
     }
 }

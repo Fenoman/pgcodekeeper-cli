@@ -44,7 +44,6 @@ public class Messages {
     public static String CliArgs_generate_constraint_not_valid;
     public static String CliArgs_generate_exist;
     public static String CliArgs_generate_exist_do_block;
-    public static String CliArgs_graph;
     public static String CliArgs_graph_depth;
     public static String CliArgs_graph_filter_object;
     public static String CliArgs_graph_invert_filter;
@@ -57,7 +56,6 @@ public class Messages {
     public static String CliArgs_ignore_list;
     public static String CliArgs_ignore_schema;
     public static String CliArgs_in_charset;
-    public static String CliArgs_insert;
     public static String CliArgs_insert_filter;
     public static String CliArgs_insert_name;
     public static String CliArgs_keep_newlines;
@@ -69,7 +67,6 @@ public class Messages {
     public static String CliArgs_no_privileges;
     public static String CliArgs_out_charset;
     public static String CliArgs_output;
-    public static String CliArgs_parse;
     public static String CliArgs_post_script;
     public static String CliArgs_pre_script;
     public static String CliArgs_run_on;

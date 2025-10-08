@@ -100,27 +100,6 @@ public class CliArgs implements ISettings {
     @Option(name="--clear-lib-cache", help=true, usage="ClearLibCache")
     private boolean clearLibCache;
 
-    /**
-     * @deprecated replaced by --mode PARSE
-     */
-    @Deprecated(forRemoval=true)
-    @Option(name="--parse", depends="-o", forbids="--mode", usage="parse")
-    private boolean modeParse;
-
-    /**
-     * @deprecated replaced by --mode GRAPH
-     */
-    @Deprecated(forRemoval=true)
-    @Option(name="--graph", forbids="--mode", usage="graph")
-    private boolean modeGraph;
-
-    /**
-     * @deprecated replaced by --mode INSERT
-     */
-    @Deprecated(forRemoval=true)
-    @Option(name="--insert", forbids="--mode", usage="insert")
-    private boolean isInsertMode;
-
     @Option(name="--mode", usage="mode")
     private CliMode mode;
 
@@ -129,8 +108,7 @@ public class CliArgs implements ISettings {
     @Argument(index=0, metaVar=CliArgsLocalizationsBundle.SOURCE, usage="source")
     private String newSrc;
 
-    @Option(name="-t", depends="-s", aliases="--target", metaVar=CliArgsLocalizationsBundle.PATH_OR_JDBC,
-            forbids={"--graph", "--parse", "--insert"}, usage="target")
+    @Option(name="-t", depends="-s", aliases="--target", metaVar=CliArgsLocalizationsBundle.PATH_OR_JDBC, usage="target")
     @Argument(index=1, metaVar=CliArgsLocalizationsBundle.DEST, usage="target")
     private String oldSrc;
 
@@ -635,9 +613,6 @@ public class CliArgs implements ISettings {
             return false;
         }
 
-        // backwards compatibility
-        convertDeprecatedArguments();
-
         if (clearLibCache && CliMode.DIFF == mode && (oldSrc == null || newSrc == null)) {
             return true;
         }
@@ -655,16 +630,6 @@ public class CliArgs implements ISettings {
         }
 
         return true;
-    }
-
-    private void convertDeprecatedArguments() {
-        if (modeParse) {
-            mode = CliMode.PARSE;
-        } else if (modeGraph) {
-            mode = CliMode.GRAPH;
-        } else if (isInsertMode) {
-            mode = CliMode.INSERT;
-        }
     }
 
     private void checkParams() throws CmdLineException {

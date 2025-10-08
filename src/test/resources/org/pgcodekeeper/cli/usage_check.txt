@@ -13,14 +13,6 @@ Usage
  --version                              : show version
  --list-charsets                        : show list of Java-supported charsets
  --clear-lib-cache                      : clear library cache
- --parse                                : deprecated option. Use --mode PARSE.
-                                          Run in parser mode to save database
-                                          schema as a directory hierarchy
- --graph                                : deprecated option. Use --mode GRAPH.
-                                          Run in graph mode to show objects
-                                          dependencies
- --insert                               : deprecated option. Use --mode INSERT.
-                                          Run in insert mode to collect data
  --mode [DIFF | PARSE | GRAPH | INSERT  : specify mode:
  | VERIFY]                                DIFF - to compares the two sources
                                           and generates a migration script;

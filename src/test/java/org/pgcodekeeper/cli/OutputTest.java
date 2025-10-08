@@ -206,12 +206,12 @@ class FailParseArgumentsProvider extends ArgumentsProvider {
 
     @Override
     public String[] args() throws URISyntaxException, IOException {
-        return new String[] { "--parse", "-o", "out", "-s", "dumb", "-t", "tgt" };
+        return new String[] { "--mode", "parse", "-o", "out", "-s", "dumb", "-t", "tgt" };
     }
 
     @Override
     public String output() {
-        return "option \"-t (--target)\" cannot be used with the option(s) [--graph, --parse, --insert]\n";
+        return "-t (--target) cannot be used with --mode PARSE option\n";
     }
 }
 
@@ -603,7 +603,7 @@ class FailParseMsArgumentsWithPgProvider extends ArgumentsProvider {
 
     @Override
     public String[] args() throws URISyntaxException, IOException {
-        return new String[] { "--db-type", "MS", "--parse", "-o", "dir", "jdbc:postgresql://xxx" };
+        return new String[] { "--db-type", "MS", "--mode", "parse", "-o", "dir", "jdbc:postgresql://xxx" };
     }
 
     @Override
@@ -619,7 +619,7 @@ class FailParseMsArgumentsWithChFirstProvider extends ArgumentsProvider {
 
     @Override
     public String[] args() throws URISyntaxException, IOException {
-        return new String[] { "--db-type", "MS", "--parse", "-o", "dir", "jdbc:ch://xxx" };
+        return new String[] { "--db-type", "MS", "--mode", "parse", "-o", "dir", "jdbc:ch://xxx" };
     }
 
     @Override
@@ -635,7 +635,7 @@ class FailParseMsArgumentsWithChSecondProvider extends ArgumentsProvider {
 
     @Override
     public String[] args() throws URISyntaxException, IOException {
-        return new String[] { "--db-type", "MS", "--parse", "-o", "dir", "jdbc:clickhouse://xxx" };
+        return new String[] { "--db-type", "MS", "--mode", "parse", "-o", "dir", "jdbc:clickhouse://xxx" };
     }
 
     @Override
@@ -651,7 +651,7 @@ class FailParsePgArgumentsWithMsProvider extends ArgumentsProvider {
 
     @Override
     public String[] args() throws URISyntaxException, IOException {
-        return new String[] { "--parse", "-o", "dir", "jdbc:sqlserver://xxx" };
+        return new String[] { "--mode", "parse", "-o", "dir", "jdbc:sqlserver://xxx" };
     }
 
     @Override
@@ -667,7 +667,7 @@ class FailParsePgArgumentsWithChFirstProvider extends ArgumentsProvider {
 
     @Override
     public String[] args() throws URISyntaxException, IOException {
-        return new String[] { "--parse", "-o", "dir", "jdbc:ch://xxx" };
+        return new String[] { "--mode", "parse", "-o", "dir", "jdbc:ch://xxx" };
     }
 
     @Override
@@ -683,7 +683,7 @@ class FailParsePgArgumentsWithChSecondProvider extends ArgumentsProvider {
 
     @Override
     public String[] args() throws URISyntaxException, IOException {
-        return new String[] { "--parse", "-o", "dir", "jdbc:clickhouse://xxx" };
+        return new String[] { "--mode", "parse", "-o", "dir", "jdbc:clickhouse://xxx" };
     }
 
     @Override
@@ -699,7 +699,7 @@ class FailParseChArgumentsWithPgProvider extends ArgumentsProvider {
 
     @Override
     public String[] args() throws URISyntaxException, IOException {
-        return new String[] { "--db-type", "CH", "--parse", "-o", "dir", "jdbc:postgresql://xxx" };
+        return new String[] { "--db-type", "CH", "--mode", "parse", "-o", "dir", "jdbc:postgresql://xxx" };
     }
 
     @Override
@@ -715,7 +715,7 @@ class FailParseChArgumentsWithMsProvider extends ArgumentsProvider {
 
     @Override
     public String[] args() throws URISyntaxException, IOException {
-        return new String[] { "--db-type", "CH", "--parse", "-o", "dir", "jdbc:sqlserver://xxx" };
+        return new String[] { "--db-type", "CH", "--mode", "parse", "-o", "dir", "jdbc:sqlserver://xxx" };
     }
 
     @Override
@@ -800,7 +800,7 @@ class FailGraphArgumentsProvider extends ArgumentsProvider {
 
     @Override
     public String[] args() throws URISyntaxException, IOException {
-        return new String[] { "--graph", "--graph-reverse", "db" };
+        return new String[] { "--mode", "graph", "--graph-reverse", "db" };
     }
 
     @Override
