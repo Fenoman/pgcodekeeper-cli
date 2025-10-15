@@ -24,8 +24,11 @@ import org.pgcodekeeper.cli.opthandlers.DbObjTypeOptionHandler;
 import org.pgcodekeeper.core.Consts;
 import org.pgcodekeeper.core.DangerStatement;
 import org.pgcodekeeper.core.DatabaseType;
+import org.pgcodekeeper.core.database.base.IDatabaseProvider;
+import org.pgcodekeeper.core.database.ch.ChDatabaseProvider;
+import org.pgcodekeeper.core.database.ms.MsDatabaseProvider;
+import org.pgcodekeeper.core.database.pg.PgDatabaseProvider;
 import org.pgcodekeeper.core.formatter.FormatConfiguration;
-import org.pgcodekeeper.core.loader.UrlJdbcConnector;
 import org.pgcodekeeper.core.model.difftree.DbObjType;
 import org.pgcodekeeper.core.settings.ISettings;
 
@@ -55,6 +58,8 @@ public class CliArgs implements ISettings {
 
     private static final String URL_START_JDBC = "jdbc:"; //$NON-NLS-1$
     private static final int DEFAULT_DEPTH = 10;
+
+    private IDatabaseProvider provider;
 
     // SONAR-OFF
     {
@@ -520,6 +525,10 @@ public class CliArgs implements ISettings {
         return null;
     }
 
+    public IDatabaseProvider getProvider() {
+        return provider;
+    }
+
     @Override
     public CliArgs copy() {
         var args = new CliArgs();
@@ -577,6 +586,7 @@ public class CliArgs implements ISettings {
         args.usingTypeCastOff = usingTypeCastOff;
         args.verifyRuleSetPath = verifyRuleSetPath;
         args.verifySources = verifySources;
+        args.provider = provider;
         return args;
     }
 
@@ -629,7 +639,16 @@ public class CliArgs implements ISettings {
             oldSrc = outputTarget;
         }
 
+        createProvider();
         return true;
+    }
+
+    private void createProvider() {
+        provider = switch (dbType) {
+            case PG -> new PgDatabaseProvider();
+            case MS -> new MsDatabaseProvider();
+            case CH -> new ChDatabaseProvider();
+        };
     }
 
     private void checkParams() throws CmdLineException {
@@ -651,39 +670,24 @@ public class CliArgs implements ISettings {
             if (dbType == DatabaseType.PG && addTransaction && concurrentlyMode) {
                 badArgs(Messages.CliArgs_error_concurrently_mode_wrong_option);
             }
-
-            DatabaseType typeNewSrc = getDatabaseTypeFromSource(newSrc);
-            DatabaseType typeOldSrc = getDatabaseTypeFromSource(oldSrc);
-            if (typeOldSrc != typeNewSrc) {
-                badArgs(String.format(Messages.CliArgs_error_different_types, typeNewSrc.toString(),
-                        typeOldSrc.toString()));
-            }
             if (runOnTarget && !oldSrc.startsWith(URL_START_JDBC)) {
                 badArgs(Messages.CliArgs_error_target_non_db);
             }
             if (runOnDb != null && !runOnDb.startsWith(URL_START_JDBC)) {
                 badArgs(Messages.CliArgs_error_run_on_non_jdbc);
             }
-        } else {
-            DatabaseType typeNewSrc = getDatabaseTypeFromSource(newSrc);
-            if (dbType != typeNewSrc) {
-                badArgs(String.format(Messages.CliArgs_error_message_cannot_database_with_project,
-                        typeNewSrc.toString(), dbType.toString()));
+        } else  if (CliMode.INSERT == mode) {
+            if (!newSrc.startsWith(URL_START_JDBC)) {
+                badArgs(Messages.CliArgs_error_source_non_db);
             }
-            if (CliMode.PARSE == mode && outputTarget == null) {
-                badArgs(Messages.CliArgs_error_argument_null.formatted("\"-o (--output)\"")); //$NON-NLS-1$
+            if (runOnDb != null && !runOnDb.startsWith(URL_START_JDBC)) {
+                badArgs(Messages.CliArgs_error_run_on_non_jdbc);
             }
-            if (CliMode.INSERT == mode) {
-                if (!newSrc.startsWith(URL_START_JDBC)) {
-                    badArgs(Messages.CliArgs_error_source_non_db);
-                }
-                if (runOnDb != null && !runOnDb.startsWith(URL_START_JDBC)) {
-                    badArgs(Messages.CliArgs_error_run_on_non_jdbc);
-                }
-                if (insertName == null) {
-                    badArgs(Messages.CliArgs_error_argument_null.formatted("\"--insert-name\"")); //$NON-NLS-1$
-                }
+            if (insertName == null) {
+                badArgs(Messages.CliArgs_error_argument_null.formatted("\"--insert-name\"")); //$NON-NLS-1$
             }
+        } else if (CliMode.PARSE == mode && outputTarget == null) {
+            badArgs(Messages.CliArgs_error_argument_null.formatted("\"-o (--output)\"")); //$NON-NLS-1$
         }
     }
 
@@ -755,13 +759,6 @@ public class CliArgs implements ISettings {
 
     private void badArgs(String message) throws CmdLineException {
         throw new CmdLineException(null, message, null);
-    }
-
-    private DatabaseType getDatabaseTypeFromSource(String src) {
-        if (src != null && src.startsWith(URL_START_JDBC)) {
-            return UrlJdbcConnector.getDatabaseTypeFromUrl(src);
-        }
-        return dbType;
     }
 
     private void printUsage() {

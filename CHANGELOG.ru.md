@@ -13,8 +13,21 @@
 
 ### Исправлено
 
+## [12.0.0] - 2025-10-15
+
+### Добавлено
+
+- Добавлена поддержка PostgreSQL 18.
+- Добавлено форматирование SELECT части объектов VIEW при чтении из базы данных для ClickHouse.
+
+### Исправлено
+
+- Исправлена генерация кода для колонок c Nullable значениями в ClickHouse.
+
 ### Удалено
 
+- Прекращена поддержка версий MS SQL ниже 2017.
+- Прекращена поддержка версий PostgreSQL ниже 14.
 - Удалены устаревшие параметры `--parse`, `--graph`, `--insert`.
 
 ## [11.2.0] - 2025-09-23
@@ -48,6 +61,7 @@
 - Исправлена ошибка с работой настроек при сохранении объектов в проект.
 - Исправлены ложные различия при игнорировании порядка колонок таблицы.
 
-[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v11.2.0...HEAD
+[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v12.0.0...HEAD
+[12.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v11.2.0...v12.0.0
 [11.2.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v11.0.0...v11.2.0
 [11.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/releases/tag/v11.0.0
