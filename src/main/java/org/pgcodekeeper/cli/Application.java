@@ -23,9 +23,9 @@ import org.kohsuke.args4j.CmdLineException;
 import org.pgcodekeeper.cli.localizations.Messages;
 import org.pgcodekeeper.core.DangerStatement;
 import org.pgcodekeeper.core.PgCodekeeperException;
+import org.pgcodekeeper.core.database.base.jdbc.AbstractJdbcConnector;
 import org.pgcodekeeper.core.loader.JdbcRunner;
 import org.pgcodekeeper.core.loader.TokenLoader;
-import org.pgcodekeeper.core.loader.UrlJdbcConnector;
 import org.pgcodekeeper.core.model.graph.DepcyFinder;
 import org.pgcodekeeper.core.model.graph.InsertWriter;
 import org.pgcodekeeper.core.parsers.antlr.base.ScriptParser;
@@ -148,7 +148,7 @@ public final class Application {
                 }
 
                 LOG.info(Messages.Main_log_apply_migration_script);
-                new JdbcRunner().runBatches(new UrlJdbcConnector(url), parser.batch(), null);
+                new JdbcRunner().runBatches(getConnector(arguments, url), parser.batch(), null);
             } else if (encodedWriter == null) {
                 writeToConsole(text);
             }
@@ -205,7 +205,7 @@ public final class Application {
             String url = arguments.getRunOnDb();
             if (url != null) {
                 LOG.info(Messages.Main_log_run_insert_data);
-                new JdbcRunner().runBatches(new UrlJdbcConnector(url),
+                new JdbcRunner().runBatches(getConnector(arguments, url),
                         new ScriptParser("CLI", script, arguments).batch(), null); //$NON-NLS-1$
             } else if (pw == null) {
                 writeToConsole(script);
@@ -214,6 +214,10 @@ public final class Application {
 
         LOG.info(Messages.Main_log_succes_finish);
         return true;
+    }
+
+    private static AbstractJdbcConnector getConnector(CliArgs arguments, String url) {
+        return arguments.getProvider().getJdbcConnector(url);
     }
 
     private static boolean graph(CliArgs arguments) throws IOException, InterruptedException {
