@@ -13,6 +13,28 @@
 
 ### Исправлено
 
+## [13.0.0] - 2025-11-12
+
+### Добавлено
+
+- Добавлена валидация строки подключения.
+- Добавлен общий интерфейс для JDBC-подключений.
+
+### Изменено
+
+- Улучшены правила парсера для ClickHouse.
+- Улучшена генерация скрипта миграции для таблиц и индексов с опциями в MS SQL.
+- Добавлено правило парсера IS JSON для PostgreSQL.
+
+### Исправлено
+
+- Исправлено форматирование CTE в ClickHouse.
+- Исправлена ошибка сравнения таблиц при включённой настройке игнорирования порядка столбцов.
+- Исправлена ошибка в генерации скрипта миграции при добавлении колонки в таблицах семейства Log в ClickHouse.
+- Исправлено ложное различие ограничений NOT NULL с именем по умолчанию в PostgreSQL.
+- Исправлено добавление ONLY для колонок в партиционных таблицах в PostgreSQL.
+- Исправлено чтение EXTERNAL TABLES в Greenplum 7.
+
 ## [12.0.0] - 2025-10-15
 
 ### Добавлено
@@ -61,7 +83,8 @@
 - Исправлена ошибка с работой настроек при сохранении объектов в проект.
 - Исправлены ложные различия при игнорировании порядка колонок таблицы.
 
-[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v12.0.0...HEAD
+[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.0.0...HEAD
+[13.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v12.0.0...v13.0.0
 [12.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v11.2.0...v12.0.0
 [11.2.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v11.0.0...v11.2.0
 [11.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/releases/tag/v11.0.0
