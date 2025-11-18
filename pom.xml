@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.pgcodekeeper</groupId>
     <artifactId>pgcodekeeper-cli</artifactId>
-    <version>13.0.0</version>
+    <version>${codekeeper.version}</version>
     <packaging>jar</packaging>
 
     <name>pgcodekeeper-cli</name>
@@ -27,6 +27,8 @@
     </developers>
 
     <properties>
+        <codekeeper.version>13.1.0</codekeeper.version>
+
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -46,7 +48,7 @@
         <dependency>
             <groupId>org.pgcodekeeper</groupId>
             <artifactId>pgcodekeeper-core</artifactId>
-            <version>12.0.0</version>
+            <version>${codekeeper.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

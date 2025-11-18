@@ -23,7 +23,7 @@ import org.kohsuke.args4j.CmdLineException;
 import org.pgcodekeeper.cli.localizations.Messages;
 import org.pgcodekeeper.core.DangerStatement;
 import org.pgcodekeeper.core.PgCodekeeperException;
-import org.pgcodekeeper.core.database.base.jdbc.AbstractJdbcConnector;
+import org.pgcodekeeper.core.database.base.jdbc.IJdbcConnector;
 import org.pgcodekeeper.core.loader.JdbcRunner;
 import org.pgcodekeeper.core.loader.TokenLoader;
 import org.pgcodekeeper.core.model.graph.DepcyFinder;
@@ -216,7 +216,7 @@ public final class Application {
         return true;
     }
 
-    private static AbstractJdbcConnector getConnector(CliArgs arguments, String url) {
+    private static IJdbcConnector getConnector(CliArgs arguments, String url) {
         return arguments.getProvider().getJdbcConnector(url);
     }
 
