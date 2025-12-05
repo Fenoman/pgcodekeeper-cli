@@ -52,8 +52,7 @@ public class CliArgs implements ISettings {
         DIFF,
         PARSE,
         GRAPH,
-        INSERT,
-        VERIFY
+        INSERT
     }
 
     private static final String URL_START_JDBC = "jdbc:"; //$NON-NLS-1$
@@ -78,7 +77,6 @@ public class CliArgs implements ISettings {
         this.preFilePath = new ArrayList<>();
         this.postFilePath = new ArrayList<>();
         this.graphNames = new ArrayList<>();
-        this.verifySources = new ArrayList<>();
         this.inCharsetName = Consts.UTF_8;
         this.outCharsetName = Consts.UTF_8;
         this.graphDepth = DEFAULT_DEPTH;
@@ -264,12 +262,6 @@ public class CliArgs implements ISettings {
 
     @Option(name="--insert-filter", metaVar=CliArgsLocalizationsBundle.FILTER, depends="--insert-name", usage="insert-filter")
     private String insertFilter;
-
-    @Option(name="--verify-source", metaVar=CliArgsLocalizationsBundle.PATH, usage="verify-source")
-    private List<String> verifySources;
-
-    @Option(name="--verify-rule-set", metaVar=CliArgsLocalizationsBundle.PATH, usage="verify-rule-set")
-    private String verifyRuleSetPath;
 
     CliMode getMode() {
         return mode;
@@ -507,14 +499,6 @@ public class CliArgs implements ISettings {
         return Collections.unmodifiableCollection(postFilePath);
     }
 
-    public Collection<String> getVerifySources() {
-        return Collections.unmodifiableCollection(verifySources);
-    }
-
-    public String getVerifyRuleSetPath() {
-        return verifyRuleSetPath;
-    }
-
     @Override
     public boolean isAutoFormatObjectCode() {
         return false;
@@ -584,8 +568,6 @@ public class CliArgs implements ISettings {
         args.targetLibXmls = targetLibXmls;
         args.timeZone = timeZone;
         args.usingTypeCastOff = usingTypeCastOff;
-        args.verifyRuleSetPath = verifyRuleSetPath;
-        args.verifySources = verifySources;
         args.provider = provider;
         return args;
     }
@@ -652,16 +634,6 @@ public class CliArgs implements ISettings {
     }
 
     private void checkParams() throws CmdLineException {
-        if (CliMode.VERIFY == mode) {
-            if (verifyRuleSetPath == null) {
-                badArgs(Messages.CliArgs_error_argument_null.formatted("\"--verify-rule-name\"")); //$NON-NLS-1$
-            }
-            if (verifySources.isEmpty()) {
-                badArgs(Messages.CliArgs_error_argument_null.formatted("\"--verify-source\"")); //$NON-NLS-1$
-            }
-            return;
-        }
-
         if (newSrc == null) {
             badArgs(Messages.CliArgs_error_source_null);
         }
@@ -729,8 +701,6 @@ public class CliArgs implements ISettings {
         badArgWithCorrectModes(DEFAULT_DEPTH != graphDepth, "--graph-depth", CliMode.GRAPH); //$NON-NLS-1$
         badArgWithCorrectModes(!graphFilterTypes.isEmpty(), "--graph-filter-object", CliMode.GRAPH); //$NON-NLS-1$
         badArgWithCorrectModes(insertName != null, "--insert-name", CliMode.INSERT); //$NON-NLS-1$
-        badArgWithCorrectModes(!verifySources.isEmpty(), "--verify-source", CliMode.VERIFY); //$NON-NLS-1$
-        badArgWithCorrectModes(verifyRuleSetPath != null, "--verify-rule-set", CliMode.VERIFY); //$NON-NLS-1$
     }
 
     private void checkDbTypesParam() throws CmdLineException {
@@ -741,7 +711,6 @@ public class CliArgs implements ISettings {
         badArgWithWrongDbType(concurrentlyMode, "-C (--concurrently-mode)", DatabaseType.CH); //$NON-NLS-1$
         badArgWithWrongDbType(commentsToEnd, "--comments-to-end", DatabaseType.CH); //$NON-NLS-1$
         badArgWithWrongDbType(CliMode.INSERT == mode, "--mode INSERT", DatabaseType.CH); //$NON-NLS-1$
-        badArgWithWrongDbType(CliMode.VERIFY == mode, "--mode VERIFY", DatabaseType.CH, DatabaseType.MS); //$NON-NLS-1$
     }
 
     private void badArgWithCorrectModes(boolean condition, String param, CliMode... modes) throws CmdLineException {

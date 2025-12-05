@@ -25,7 +25,6 @@ import org.pgcodekeeper.core.DangerStatement;
 import org.pgcodekeeper.core.PgCodekeeperException;
 import org.pgcodekeeper.core.database.base.jdbc.IJdbcConnector;
 import org.pgcodekeeper.core.loader.JdbcRunner;
-import org.pgcodekeeper.core.loader.TokenLoader;
 import org.pgcodekeeper.core.model.graph.DepcyFinder;
 import org.pgcodekeeper.core.model.graph.InsertWriter;
 import org.pgcodekeeper.core.parsers.antlr.base.ScriptParser;
@@ -40,7 +39,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.function.Consumer;
@@ -80,7 +78,6 @@ public final class Application {
                 case INSERT -> insert(arguments);
                 case PARSE -> parse(arguments);
                 case GRAPH -> graph(arguments);
-                case VERIFY -> verify(arguments);
                 default -> {
                     if (arguments.getOldSrc() == null || arguments.getNewSrc() == null) {
                         // clear cache
@@ -240,22 +237,6 @@ public final class Application {
 
         LOG.info(Messages.Main_log_succes_finish);
         return true;
-    }
-
-    private static boolean verify(CliArgs arguments)
-            throws IOException, InterruptedException {
-        Path path = Paths.get(arguments.getVerifyRuleSetPath());
-        LOG.info(Messages.Main_log_start_code_verify);
-        List<Object> errors = TokenLoader.verify(arguments, path, arguments.getVerifySources());
-        if (errors.isEmpty()) {
-            LOG.info(Messages.Main_log_finish_code_verify);
-            return true;
-        }
-
-        for (Object error : errors) {
-            writeToConsole(error.toString());
-        }
-        return false;
     }
 
     private static void clearCache() throws IOException {

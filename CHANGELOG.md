@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+### Removed
+
+- Removed the [--mode verify] mode used for code style checking.
+
 ## [13.1.0] - 2025-11-18
 
 ### Changed

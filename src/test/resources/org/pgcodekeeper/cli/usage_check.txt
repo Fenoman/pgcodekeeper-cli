@@ -4,7 +4,6 @@ Usage
 	pgcodekeeper-cli --mode PARSE -o OUTDIR [--update-project] [option]... SOURCE
 	pgcodekeeper-cli --mode GRAPH [option]... SOURCE
 	pgcodekeeper-cli --mode INSERT --insert-name <name> --insert-filter <filter> [option]... SOURCE
-	pgcodekeeper-cli --mode VERIFY --verify-rule-set <path> --verify-source <path> [option]...
 
  SOURCE                                 : source of schema changes
  DEST                                   : destination for schema changes (diff
@@ -13,8 +12,8 @@ Usage
  --version                              : show version
  --list-charsets                        : show list of Java-supported charsets
  --clear-lib-cache                      : clear library cache
- --mode [DIFF | PARSE | GRAPH | INSERT  : specify mode:
- | VERIFY]                                DIFF - to compares the two sources
+ --mode [DIFF | PARSE | GRAPH | INSERT] : specify mode:
+                                          DIFF - to compares the two sources
                                           and generates a migration script;
                                           PARSE - to save database schema as a
                                           directory hierarchy;
@@ -156,12 +155,6 @@ Usage
                                           mode
  --insert-filter <filter>               : value of WHERE expression for initial
                                           select in insert mode
- --verify-source <path>                 : path to file or directory for code
-                                          verification
-                                          specify multiple times to use several
-                                          paths
- --verify-rule-set <path>               : path to a file with a set of rules
-                                          for code verification
 
 DANGER_STATEMENT : [DROP_TABLE | ALTER_COLUMN | DROP_COLUMN | RESTART_WITH | UPDATE]
 OBJECT_TYPE : [CAST | USER | ROLE | ASSEMBLY | SCHEMA | EXTENSION | EVENT_TRIGGER | FOREIGN_DATA_WRAPPER | SERVER | USER_MAPPING | COLLATION | TYPE | DOMAIN | SEQUENCE | OPERATOR | FTS_PARSER | FTS_TEMPLATE | FTS_DICTIONARY | FTS_CONFIGURATION | TABLE | DICTIONARY | FUNCTION | PROCEDURE | AGGREGATE | INDEX | CONSTRAINT | VIEW | STATISTICS | TRIGGER | RULE | POLICY]
