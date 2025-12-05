@@ -98,9 +98,7 @@ public final class CliArgsLocalizationsBundle extends ListResourceBundle {
             {"graph-filter-object", Messages.CliArgs_graph_filter_object}, //$NON-NLS-1$
             {"graph-invert-filter", Messages.CliArgs_graph_invert_filter}, //$NON-NLS-1$
             {"insert-name", Messages.CliArgs_insert_name}, //$NON-NLS-1$
-            {"insert-filter", Messages.CliArgs_insert_filter}, //$NON-NLS-1$
-            {"verify-source", Messages.CliArgs_verify_source}, //$NON-NLS-1$
-            {"verify-rule-set", Messages.CliArgs_verify_rule_set} //$NON-NLS-1$
+            {"insert-filter", Messages.CliArgs_insert_filter} //$NON-NLS-1$
             };
     }
 }

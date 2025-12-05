@@ -87,8 +87,6 @@ public class Messages {
     public static String CliArgs_time_zone;
     public static String CliArgs_update_project;
     public static String CliArgs_using_off;
-    public static String CliArgs_verify_rule_set;
-    public static String CliArgs_verify_source;
     public static String CliArgs_Version;
     public static String Main_cach_clear;
     public static String Main_danger_statements;
@@ -96,10 +94,8 @@ public class Messages {
     public static String Main_log_build_graph_deps;
     public static String Main_log_contains_dangerous_statements;
     public static String Main_log_create_script;
-    public static String Main_log_finish_code_verify;
     public static String Main_log_run_insert_data;
     public static String Main_log_running_error;
-    public static String Main_log_start_code_verify;
     public static String Main_log_start_export_proj;
     public static String Main_log_start_insert_data;
     public static String Main_log_start_update_proj;
