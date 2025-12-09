@@ -3,7 +3,6 @@ Usage
 	pgcodekeeper-cli -s SOURCE -t DEST [option]...
 	pgcodekeeper-cli --mode PARSE -o OUTDIR [--update-project] [option]... SOURCE
 	pgcodekeeper-cli --mode GRAPH [option]... SOURCE
-	pgcodekeeper-cli --mode INSERT --insert-name <name> --insert-filter <filter> [option]... SOURCE
 
  SOURCE                                 : source of schema changes
  DEST                                   : destination for schema changes (diff
@@ -12,18 +11,14 @@ Usage
  --version                              : show version
  --list-charsets                        : show list of Java-supported charsets
  --clear-lib-cache                      : clear library cache
- --mode [DIFF | PARSE | GRAPH | INSERT] : specify mode:
+ --mode [DIFF | PARSE | GRAPH]          : specify mode:
                                           DIFF - to compares the two sources
                                           and generates a migration script;
                                           PARSE - to save database schema as a
                                           directory hierarchy;
                                           GRAPH - to search for dependencies of
                                           an object;
-                                          INSERT - to gathering data from the
-                                          source database taking into account
-                                          the FK dependencies;
-                                          VERIFY - to check code style;
-                                          (default: DIFF)
+                                           (default: DIFF)
  -s (--source) <path or JDBC>           : source of schema changes
  -t (--target) <path or JDBC>           : destination for schema changes (diff
                                           mode only)
@@ -151,10 +146,6 @@ Usage
                                           objects types
  --graph-invert-filter                  : invert graph filter object types:
                                           hide objects specified by the filter
- --insert-name <name>                   : name of start object in data insert
-                                          mode
- --insert-filter <filter>               : value of WHERE expression for initial
-                                          select in insert mode
 
 DANGER_STATEMENT : [DROP_TABLE | ALTER_COLUMN | DROP_COLUMN | RESTART_WITH | UPDATE]
 OBJECT_TYPE : [CAST | USER | ROLE | ASSEMBLY | SCHEMA | EXTENSION | EVENT_TRIGGER | FOREIGN_DATA_WRAPPER | SERVER | USER_MAPPING | COLLATION | TYPE | DOMAIN | SEQUENCE | OPERATOR | FTS_PARSER | FTS_TEMPLATE | FTS_DICTIONARY | FTS_CONFIGURATION | TABLE | DICTIONARY | FUNCTION | PROCEDURE | AGGREGATE | INDEX | CONSTRAINT | VIEW | STATISTICS | TRIGGER | RULE | POLICY]

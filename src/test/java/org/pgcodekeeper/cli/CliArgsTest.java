@@ -57,17 +57,6 @@ class CliArgsTest {
             "filename filename --simplify-views --db-type MS;"
                     + "--simplify-views cannot be used with --db-type MS option",
 
-            "--mode INSERT jdbc:postgresql:q;"
-                    + "Please specify argument \"--insert-name\"",
-
-            "--insert-name table_name --insert-filter filter jdbc:postgresql:q;"
-                    + "--insert-name cannot be used with --mode DIFF option",
-
-            "--mode INSERT --insert-name table_name --db-type CH jdbc:ch:q;"
-                    + "option \"--insert-name\" requires the option(s) [--insert-filter]",
-
-            "--mode INSERT filename;"
-                    + "Source must be a database.",
     })
     void badArgsTest(String arguments, String message) {
         String[] args = arguments.split(" ");

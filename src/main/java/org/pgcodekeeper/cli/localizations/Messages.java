@@ -56,8 +56,6 @@ public class Messages {
     public static String CliArgs_ignore_list;
     public static String CliArgs_ignore_schema;
     public static String CliArgs_in_charset;
-    public static String CliArgs_insert_filter;
-    public static String CliArgs_insert_name;
     public static String CliArgs_keep_newlines;
     public static String CliArgs_lib_safe_mode;
     public static String CliArgs_list_charsets;
@@ -94,10 +92,8 @@ public class Messages {
     public static String Main_log_build_graph_deps;
     public static String Main_log_contains_dangerous_statements;
     public static String Main_log_create_script;
-    public static String Main_log_run_insert_data;
     public static String Main_log_running_error;
     public static String Main_log_start_export_proj;
-    public static String Main_log_start_insert_data;
     public static String Main_log_start_update_proj;
     public static String Main_log_succes_finish;
     public static String Main_show_stacktrace;
