@@ -51,8 +51,7 @@ public class CliArgs implements ISettings {
     enum CliMode {
         DIFF,
         PARSE,
-        GRAPH,
-        INSERT
+        GRAPH
     }
 
     private static final String URL_START_JDBC = "jdbc:"; //$NON-NLS-1$
@@ -257,22 +256,8 @@ public class CliArgs implements ISettings {
     @Option(name="--graph-invert-filter", depends="--graph-filter-object", usage="graph-invert-filter")
     private boolean graphInvertFilter;
 
-    @Option(name="--insert-name", metaVar=CliArgsLocalizationsBundle.NAME, depends="--insert-filter", usage="insert-name")
-    private String insertName;
-
-    @Option(name="--insert-filter", metaVar=CliArgsLocalizationsBundle.FILTER, depends="--insert-name", usage="insert-filter")
-    private String insertFilter;
-
     CliMode getMode() {
         return mode;
-    }
-
-    public String getInsertName() {
-        return insertName;
-    }
-
-    public String getInsertFilter() {
-        return insertFilter;
     }
 
     public boolean isClearLibCache() {
@@ -542,8 +527,6 @@ public class CliArgs implements ISettings {
         args.ignorePrivileges = ignorePrivileges;
         args.ignoreSchemaList = ignoreSchemaList;
         args.inCharsetName = inCharsetName;
-        args.insertFilter = insertFilter;
-        args.insertName = insertName;
         args.keepNewlines = keepNewlines;
         args.libSafeMode = libSafeMode;
         args.mode = mode;
@@ -648,16 +631,6 @@ public class CliArgs implements ISettings {
             if (runOnDb != null && !runOnDb.startsWith(URL_START_JDBC)) {
                 badArgs(Messages.CliArgs_error_run_on_non_jdbc);
             }
-        } else  if (CliMode.INSERT == mode) {
-            if (!newSrc.startsWith(URL_START_JDBC)) {
-                badArgs(Messages.CliArgs_error_source_non_db);
-            }
-            if (runOnDb != null && !runOnDb.startsWith(URL_START_JDBC)) {
-                badArgs(Messages.CliArgs_error_run_on_non_jdbc);
-            }
-            if (insertName == null) {
-                badArgs(Messages.CliArgs_error_argument_null.formatted("\"--insert-name\"")); //$NON-NLS-1$
-            }
         } else if (CliMode.PARSE == mode && outputTarget == null) {
             badArgs(Messages.CliArgs_error_argument_null.formatted("\"-o (--output)\"")); //$NON-NLS-1$
         }
@@ -665,11 +638,10 @@ public class CliArgs implements ISettings {
 
     private void checkModeParams() throws CmdLineException {
         // argument can be used only with mode
-        badArgWithCorrectModes(newSrc != null, "-s (--source)", CliMode.DIFF, CliMode.PARSE, CliMode.GRAPH, //$NON-NLS-1$
-                CliMode.INSERT);
+        badArgWithCorrectModes(newSrc != null, "-s (--source)", CliMode.DIFF, CliMode.PARSE, CliMode.GRAPH); //$NON-NLS-1$
         badArgWithCorrectModes(oldSrc != null, "-t (--target)", CliMode.DIFF); //$NON-NLS-1$
-        badArgWithCorrectModes(addTransaction, "-X (--add-transaction)", CliMode.DIFF, CliMode.INSERT); //$NON-NLS-1$
-        badArgWithCorrectModes(runOnDb != null, "-R (--run-on)", CliMode.DIFF, CliMode.INSERT); //$NON-NLS-1$
+        badArgWithCorrectModes(addTransaction, "-X (--add-transaction)", CliMode.DIFF); //$NON-NLS-1$
+        badArgWithCorrectModes(runOnDb != null, "-R (--run-on)", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(enableFunctionBodiesDependencies, "-f (--enable-function-bodies-dependencies)", //$NON-NLS-1$
                 CliMode.DIFF, CliMode.PARSE, CliMode.GRAPH);
         badArgWithCorrectModes(simplifyView, "--simplify-views", CliMode.DIFF, CliMode.PARSE); //$NON-NLS-1$
@@ -700,7 +672,6 @@ public class CliArgs implements ISettings {
         badArgWithCorrectModes(!graphNames.isEmpty(), "--graph-name", CliMode.GRAPH); //$NON-NLS-1$
         badArgWithCorrectModes(DEFAULT_DEPTH != graphDepth, "--graph-depth", CliMode.GRAPH); //$NON-NLS-1$
         badArgWithCorrectModes(!graphFilterTypes.isEmpty(), "--graph-filter-object", CliMode.GRAPH); //$NON-NLS-1$
-        badArgWithCorrectModes(insertName != null, "--insert-name", CliMode.INSERT); //$NON-NLS-1$
     }
 
     private void checkDbTypesParam() throws CmdLineException {
@@ -710,7 +681,6 @@ public class CliArgs implements ISettings {
                 DatabaseType.CH);
         badArgWithWrongDbType(concurrentlyMode, "-C (--concurrently-mode)", DatabaseType.CH); //$NON-NLS-1$
         badArgWithWrongDbType(commentsToEnd, "--comments-to-end", DatabaseType.CH); //$NON-NLS-1$
-        badArgWithWrongDbType(CliMode.INSERT == mode, "--mode INSERT", DatabaseType.CH); //$NON-NLS-1$
     }
 
     private void badArgWithCorrectModes(boolean condition, String param, CliMode... modes) throws CmdLineException {

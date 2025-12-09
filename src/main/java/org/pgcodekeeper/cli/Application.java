@@ -75,7 +75,6 @@ public final class Application {
             }
 
             return switch (arguments.getMode()) {
-                case INSERT -> insert(arguments);
                 case PARSE -> parse(arguments);
                 case GRAPH -> graph(arguments);
                 default -> {
@@ -174,39 +173,6 @@ public final class Application {
         } catch (PgCodekeeperException ex) {
             diff.getErrors().forEach(Application::writeError);
             return false;
-        }
-
-        LOG.info(Messages.Main_log_succes_finish);
-        return true;
-    }
-
-    private static boolean insert(CliArgs arguments)
-            throws IOException, InterruptedException, SQLException {
-        var diff = new PgDiffCli(arguments);
-        AbstractDatabase db;
-        try {
-            db = diff.loadNewDatabaseWithLibraries();
-        } catch (PgCodekeeperException ex) {
-            printError(diff);
-            return false;
-        }
-
-        LOG.info(Messages.Main_log_start_insert_data);
-        var script = InsertWriter.write(db, arguments, arguments.getInsertName(), arguments.getInsertFilter(),
-                arguments.getNewSrc());
-
-        try (PrintWriter pw = getDiffWriter(arguments)) {
-            if (pw != null) {
-                pw.println(script);
-            }
-            String url = arguments.getRunOnDb();
-            if (url != null) {
-                LOG.info(Messages.Main_log_run_insert_data);
-                new JdbcRunner().runBatches(getConnector(arguments, url),
-                        new ScriptParser("CLI", script, arguments).batch(), null); //$NON-NLS-1$
-            } else if (pw == null) {
-                writeToConsole(script);
-            }
         }
 
         LOG.info(Messages.Main_log_succes_finish);
