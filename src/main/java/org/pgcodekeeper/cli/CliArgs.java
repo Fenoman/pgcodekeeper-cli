@@ -705,7 +705,7 @@ public class CliArgs implements ISettings {
         OptionHandlerRegistry.getRegistry().registerHandler(Boolean.class, BooleanNoDefOptionHandler.class);
         OptionHandlerRegistry.getRegistry().registerHandler(boolean.class, BooleanNoDefOptionHandler.class);
 
-        ParserProperties prop = ParserProperties.defaults().withUsageWidth(80).withOptionSorter(null);
+        ParserProperties prop = ParserProperties.defaults().withUsageWidth(80);
 
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
 
