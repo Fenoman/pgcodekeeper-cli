@@ -7,10 +7,41 @@ Usage
  SOURCE                                 : source of schema changes
  DEST                                   : destination for schema changes (diff
                                           mode only)
- --help                                 : show this help
- --version                              : show version
- --list-charsets                        : show list of Java-supported charsets
  --clear-lib-cache                      : clear library cache
+ --comments-to-end                      : print comments at the end of the
+                                          script
+ --db-type [PG | MS | CH]               : specify database type for work: PG,
+                                          MS, CH (default: PG)
+ --drop-before-create                   : print DROP before CREATE statement
+ --generate-exist                       : print CREATE IF NOT EXISTS / DROP IF
+                                          EXISTS
+ --graph-depth <n>                      : depth of displayed dependencies in
+                                          graph mode (default: 10)
+ --graph-filter-object <OBJECT_TYPE>    : show these object types, hide other
+                                          objects types
+ --graph-invert-filter                  : invert graph filter object types:
+                                          hide objects specified by the filter
+ --graph-name <name>                    : name of start object in graph mode
+                                          specify multiple times to use several
+                                          names
+ --graph-reverse                        : reverse the direction of the graph to
+                                          show objects on which the starting
+                                          object depends
+ --help                                 : show this help
+ --ignore-column-order                  : ignore differences in table column
+                                          order
+ --ignore-errors                        : do not stop on parse errors
+ --ignore-schema <path>                 : use an ignore schema list to
+                                          include/exclude schemas at loading
+                                          stage
+ --in-charset <charset>                 : input charset (default: UTF-8)
+ --lib-safe-mode                        : exit with an error if a library
+                                          object conflicts with other schema or
+                                          library objects
+                                          otherwise, in case of conflicts
+                                          objects loaded first have priority
+ --list-charsets                        : show list of Java-supported charsets
+ --migrate-data                         : migrate data when re-creating tables
  --mode [DIFF | PARSE | GRAPH]          : specify mode:
                                           DIFF - to compares the two sources
                                           and generates a migration script;
@@ -19,92 +50,27 @@ Usage
                                           GRAPH - to search for dependencies of
                                           an object;
                                            (default: DIFF)
- -s (--source) <path or JDBC>           : source of schema changes
- -t (--target) <path or JDBC>           : destination for schema changes (diff
-                                          mode only)
- -o (--output) <path>                   : script output file or parser output
-                                          directory
- -r (--run-on-target)                   : run generated script on the target
-                                          database
- -R (--run-on) <JDBC>                   : run generated script on the specified
-                                          database
- --in-charset <charset>                 : input charset (default: UTF-8)
  --out-charset <charset>                : output charset (default: UTF-8)
- -E (--error)                           : print exception stacktrace
- --ignore-errors                        : do not stop on parse errors
- -P (--no-privileges)                   : ignore privileges and owners of
-                                          database objects
- -L (--keep-newlines)                   : keep newline characters as is (don't
-                                          convert to Unix newlines)
- --simplify-views                       : simple formatting for VIEWs when
-                                          reading via JDBC (not recomended by
-                                          PostgreSQL)
- -X (--add-transaction)                 : wrap generated script with
-                                          transaction statements
- -F (--no-check-function-bodies)        : set check_function_bodies to false at
-                                          the beginning of the script
- -f (--enable-function-bodies-dependenc : enable dependencies from bodies of
- ies)                                     functions and procedures to other
-                                          functions or procedures
- -Z (--time-zone) <timezone>            : use this timezone when working with
-                                          database, also add SET TIMEZONE
-                                          statement to the script
- --pre-script <path>                    : PRE script file path or directory
-                                          with PRE scripts
-                                          nested directories are loaded
-                                          recursively
-                                          specify multiple times to use several
-                                          paths
  --post-script <path>                   : POST script file path or directory
                                           with POST scripts
                                           nested directories are loaded
                                           recursively
                                           specify multiple times to use several
                                           paths
- --ignore-column-order                  : ignore differences in table column
-                                          order
- -v (--generate-constraint-not-valid)   : print CONSTRAINT NOT VALID for no
-                                          partitioned tables
- --using-off                            : do not print USING expression for
-                                          ALTER COLUMN TYPE
- --migrate-data                         : migrate data when re-creating tables
- -C (--concurrently-mode)               : print CREATE INDEX with CONCURRENTLY
-                                          option for PostgreSQL and WITH ONLINE
-                                          = ON for MS SQL
- --generate-exist                       : print CREATE IF NOT EXISTS / DROP IF
-                                          EXISTS
- -do (--generate-exist-do-block)        : print creation of CONSTRAINT and
-                                          IDENTITY in DO block (PG only)
- --drop-before-create                   : print DROP before CREATE statement
- --comments-to-end                      : print comments at the end of the
-                                          script
- -S (--safe-mode)                       : do not generate scripts containing
-                                          dangerous statements
-                                          see: --allow-danger-ddl
- -D (--allow-danger-ddl)                : allows dangerous statements in
- <DANGER_STATEMENT>                       safe-mode scripts
- -O (--allowed-object) <OBJECT_TYPE>    : build the script using these object
-                                          types only, hide statements of other
-                                          objects
- --stop-not-allowed                     : exit with an error when
-                                          --allowed-object hides a dependency
-                                          statement from the script
+ --pre-script <path>                    : PRE script file path or directory
+                                          with PRE scripts
+                                          nested directories are loaded
+                                          recursively
+                                          specify multiple times to use several
+                                          paths
  --selected-only                        : build the script using 'selected'
                                           objects only, hide statements of
                                           other objects
                                           in CLI, selected means included by
                                           --allowed-object and ignore lists
- -I (--ignore-list) <path>              : use an ignore list to include/exclude
-                                          objects from diff
-                                          specify multiple times to use several
-                                          lists
- --ignore-schema <path>                 : use an ignore schema list to
-                                          include/exclude schemas at loading
-                                          stage
- --src-lib-xml <path>                   : add xml with library dependencies to
-                                          source
-                                          specify multiple times to use several
-                                          library xml's
+ --simplify-views                       : simple formatting for VIEWs when
+                                          reading via JDBC (not recomended by
+                                          PostgreSQL)
  --src-lib <path or JDBC>               : add library dependency to source
                                           specify multiple times to use several
                                           libraries
@@ -112,10 +78,13 @@ Usage
                                           without privileges
                                           specify multiple times to use several
                                           libraries
- --tgt-lib-xml <path>                   : add xml with library dependencies to
-                                          target
+ --src-lib-xml <path>                   : add xml with library dependencies to
+                                          source
                                           specify multiple times to use several
                                           library xml's
+ --stop-not-allowed                     : exit with an error when
+                                          --allowed-object hides a dependency
+                                          statement from the script
  --tgt-lib <path or JDBC>               : add library dependency to destination
                                           specify multiple times to use several
                                           libraries
@@ -123,29 +92,60 @@ Usage
                                           without privileges
                                           specify multiple times to use several
                                           libraries
- --lib-safe-mode                        : exit with an error if a library
-                                          object conflicts with other schema or
-                                          library objects
-                                          otherwise, in case of conflicts
-                                          objects loaded first have priority
- -m (--ignore-concurrent-modification)  : ignore concurrent modification errors
-                                          of database objects
- --db-type [PG | MS | CH]               : specify database type for work: PG,
-                                          MS, CH (default: PG)
+ --tgt-lib-xml <path>                   : add xml with library dependencies to
+                                          target
+                                          specify multiple times to use several
+                                          library xml's
  --update-project                       : update an existing project in parse
                                           mode
- --graph-depth <n>                      : depth of displayed dependencies in
-                                          graph mode (default: 10)
- --graph-reverse                        : reverse the direction of the graph to
-                                          show objects on which the starting
-                                          object depends
- --graph-name <name>                    : name of start object in graph mode
+ --using-off                            : do not print USING expression for
+                                          ALTER COLUMN TYPE
+ --version                              : show version
+ -C (--concurrently-mode)               : print CREATE INDEX with CONCURRENTLY
+                                          option for PostgreSQL and WITH ONLINE
+                                          = ON for MS SQL
+ -D (--allow-danger-ddl)                : allows dangerous statements in
+ <DANGER_STATEMENT>                       safe-mode scripts
+ -E (--error)                           : print exception stacktrace
+ -F (--no-check-function-bodies)        : set check_function_bodies to false at
+                                          the beginning of the script
+ -I (--ignore-list) <path>              : use an ignore list to include/exclude
+                                          objects from diff
                                           specify multiple times to use several
-                                          names
- --graph-filter-object <OBJECT_TYPE>    : show these object types, hide other
-                                          objects types
- --graph-invert-filter                  : invert graph filter object types:
-                                          hide objects specified by the filter
+                                          lists
+ -L (--keep-newlines)                   : keep newline characters as is (don't
+                                          convert to Unix newlines)
+ -O (--allowed-object) <OBJECT_TYPE>    : build the script using these object
+                                          types only, hide statements of other
+                                          objects
+ -P (--no-privileges)                   : ignore privileges and owners of
+                                          database objects
+ -R (--run-on) <JDBC>                   : run generated script on the specified
+                                          database
+ -S (--safe-mode)                       : do not generate scripts containing
+                                          dangerous statements
+                                          see: --allow-danger-ddl
+ -X (--add-transaction)                 : wrap generated script with
+                                          transaction statements
+ -Z (--time-zone) <timezone>            : use this timezone when working with
+                                          database, also add SET TIMEZONE
+                                          statement to the script
+ -do (--generate-exist-do-block)        : print creation of CONSTRAINT and
+                                          IDENTITY in DO block (PG only)
+ -f (--enable-function-bodies-dependenc : enable dependencies from bodies of
+ ies)                                     functions and procedures to other
+                                          functions or procedures
+ -m (--ignore-concurrent-modification)  : ignore concurrent modification errors
+                                          of database objects
+ -o (--output) <path>                   : script output file or parser output
+                                          directory
+ -r (--run-on-target)                   : run generated script on the target
+                                          database
+ -s (--source) <path or JDBC>           : source of schema changes
+ -t (--target) <path or JDBC>           : destination for schema changes (diff
+                                          mode only)
+ -v (--generate-constraint-not-valid)   : print CONSTRAINT NOT VALID for no
+                                          partitioned tables
 
 DANGER_STATEMENT : [DROP_TABLE | ALTER_COLUMN | DROP_COLUMN | RESTART_WITH | UPDATE]
 OBJECT_TYPE : [CAST | USER | ROLE | ASSEMBLY | SCHEMA | EXTENSION | EVENT_TRIGGER | FOREIGN_DATA_WRAPPER | SERVER | USER_MAPPING | COLLATION | TYPE | DOMAIN | SEQUENCE | OPERATOR | FTS_PARSER | FTS_TEMPLATE | FTS_DICTIONARY | FTS_CONFIGURATION | TABLE | DICTIONARY | FUNCTION | PROCEDURE | AGGREGATE | INDEX | CONSTRAINT | VIEW | STATISTICS | TRIGGER | RULE | POLICY]

@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- Improved readability of `--help` help: options are sorted alphabetically.
+
 ### Fixed
 
 ### Removed
