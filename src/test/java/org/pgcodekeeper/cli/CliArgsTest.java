@@ -28,13 +28,13 @@ class CliArgsTest {
                     "Please specify SOURCE.",
 
             "--mode PARSE -o;" +
-                    "Option \"-o (--output)\" takes an operand",
+                    "Option \"--output (-o)\" takes an operand",
 
             "--mode PARSE -s filename -t filename -o filename;" +
-                    "-t (--target) cannot be used with --mode PARSE option",
+                    "--target (-t) cannot be used with --mode PARSE option",
 
             "--mode graph --graph-name public.test jdbc:postgresql:q jdbc:postgresql:q2;"
-                    + "-t (--target) cannot be used with --mode GRAPH option",
+                    + "--target (-t) cannot be used with --mode GRAPH option",
 
             "--mode graph --graph-name test;"
                     + "Please specify SOURCE.",
@@ -46,13 +46,13 @@ class CliArgsTest {
                     + "Please specify both SOURCE and DEST.",
 
             "jdbc:postgresql:q jdbc:postgresql:q2 -X -C;"
-                    + "-C (--concurrently-mode) cannot be used with the option(s) -X (--add-transaction) for PostgreSQL.",
+                    + "--concurrently-mode (-C) cannot be used with the option(s) --add-transaction (-X) for PostgreSQL.",
 
             "-r filename filename;"
                     + "Script can be applied only to database.",
 
             "-R filename filename filename;"
-                    + "Option -R (--run-on) must specify JDBC connection string.",
+                    + "Option --run-on (-R) must specify JDBC connection string.",
 
             "filename filename --simplify-views --db-type MS;"
                     + "--simplify-views cannot be used with --db-type MS option",
