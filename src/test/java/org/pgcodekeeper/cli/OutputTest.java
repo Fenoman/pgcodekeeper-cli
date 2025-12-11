@@ -176,7 +176,7 @@ class FailSourceArgumentsProvider extends ArgumentsProvider {
 
     @Override
     public String output() {
-        return "option \"-s (--source)\" requires the option(s) [-t]\n";
+        return "option \"--source (-s)\" requires the option(s) [-t]\n";
     }
 }
 
@@ -192,7 +192,7 @@ class FailParseArgumentsProvider extends ArgumentsProvider {
 
     @Override
     public String output() {
-        return "-t (--target) cannot be used with --mode PARSE option\n";
+        return "--target (-t) cannot be used with --mode PARSE option\n";
     }
 }
 
@@ -368,7 +368,7 @@ class FailConcurrentlyArgumentsProvider extends ArgumentsProvider {
 
     @Override
     public String output() {
-        return "-C (--concurrently-mode) cannot be used with the option(s) -X (--add-transaction) for PostgreSQL.\n";
+        return "--concurrently-mode (-C) cannot be used with the option(s) --add-transaction (-X) for PostgreSQL.\n";
     }
 }
 
@@ -550,6 +550,6 @@ class FailGenerateExistDoBlock extends ArgumentsProvider {
 
     @Override
     public String output() {
-        return "-do (--generate-exist-do-block) cannot be used with --db-type MS option\n";
+        return "--generate-exist-do-block (-do) cannot be used with --db-type MS option\n";
     }
 }
