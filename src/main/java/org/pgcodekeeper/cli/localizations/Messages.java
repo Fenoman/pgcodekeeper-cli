@@ -24,6 +24,7 @@ public class Messages {
     public static String CliArgs_add_transaction;
     public static String CliArgs_allow_danger_ddl;
     public static String CliArgs_allowed_object;
+    public static String CliArgs_cluster_name;
     public static String CliArgs_clear_lib_cache;
     public static String CliArgs_comments_to_end;
     public static String CliArgs_concurrently_mode;
@@ -32,11 +33,8 @@ public class Messages {
     public static String CliArgs_enable_function_bodies_dependencies;
     public static String CliArgs_error_argument_null;
     public static String CliArgs_error_concurrently_mode_wrong_option;
-    public static String CliArgs_error_different_types;
-    public static String CliArgs_error_message_cannot_database_with_project;
     public static String CliArgs_error_run_on_non_jdbc;
     public static String CliArgs_error_source_dest;
-    public static String CliArgs_error_source_non_db;
     public static String CliArgs_error_source_null;
     public static String CliArgs_error_target_non_db;
     public static String CliArgs_error_wrong_db_type;

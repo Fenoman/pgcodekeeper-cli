@@ -57,6 +57,9 @@ class CliArgsTest {
             "filename filename --simplify-views --db-type MS;"
                     + "--simplify-views cannot be used with --db-type MS option",
 
+            "jdbc:postgresql:q jdbc:postgresql:q2 --cluster-name test;"
+                    + "--cluster-name cannot be used with --db-type PG option"
+
     })
     void badArgsTest(String arguments, String message) {
         String[] args = arguments.split(" ");

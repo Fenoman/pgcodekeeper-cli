@@ -256,6 +256,9 @@ public class CliArgs implements ISettings {
     @Option(name="--graph-invert-filter", depends="--graph-filter-object", usage="graph-invert-filter")
     private boolean graphInvertFilter;
 
+    @Option(name="--cluster-name", usage="cluster-name")
+    private String сlusterName;
+
     CliMode getMode() {
         return mode;
     }
@@ -499,6 +502,11 @@ public class CliArgs implements ISettings {
     }
 
     @Override
+    public String getClusterName() {
+        return сlusterName;
+    }
+
+    @Override
     public CliArgs copy() {
         var args = new CliArgs();
         args.addTransaction = addTransaction;
@@ -552,6 +560,7 @@ public class CliArgs implements ISettings {
         args.timeZone = timeZone;
         args.usingTypeCastOff = usingTypeCastOff;
         args.provider = provider;
+        args.сlusterName = сlusterName;
         return args;
     }
 
@@ -681,6 +690,7 @@ public class CliArgs implements ISettings {
                 DatabaseType.CH);
         badArgWithWrongDbType(concurrentlyMode, "--concurrently-mode (-C)", DatabaseType.CH); //$NON-NLS-1$
         badArgWithWrongDbType(commentsToEnd, "--comments-to-end", DatabaseType.CH); //$NON-NLS-1$
+        badArgWithWrongDbType(null != сlusterName, "--cluster-name", DatabaseType.PG, DatabaseType.MS); //$NON-NLS-1$
     }
 
     private void badArgWithCorrectModes(boolean condition, String param, CliMode... modes) throws CmdLineException {

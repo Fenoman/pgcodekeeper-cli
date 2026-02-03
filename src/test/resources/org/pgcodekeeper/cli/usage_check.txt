@@ -15,6 +15,9 @@ Usage
                                           types only, hide statements of other
                                           objects
  --clear-lib-cache                      : clear library cache
+ --cluster-name                         : the name of the cluster that will be
+                                          applied to all tables (experimentally,
+                                          only for ClickHouse)
  --comments-to-end                      : print comments at the end of the
                                           script
  --concurrently-mode (-C)               : print CREATE INDEX with CONCURRENTLY
