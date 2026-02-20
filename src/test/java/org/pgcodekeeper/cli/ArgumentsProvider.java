@@ -22,10 +22,12 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public abstract class ArgumentsProvider implements AutoCloseable {
 
     protected static final String STANDALONE = "pgcodekeeper_standalone_";
+    protected static final Path TEMP_DIR = Paths.get(System.getProperty("java.io.tmpdir"));
 
     protected final String resName;
     protected Path resFile;
@@ -67,7 +69,7 @@ public abstract class ArgumentsProvider implements AutoCloseable {
 
     public TempDir getParseResultDir() throws IOException {
         if (resDir == null) {
-            resDir = new TempDir(STANDALONE);
+            resDir = new TempDir(TEMP_DIR, STANDALONE);
         }
 
         return resDir;

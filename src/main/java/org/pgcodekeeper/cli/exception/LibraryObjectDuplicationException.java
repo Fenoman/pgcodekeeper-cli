@@ -15,7 +15,7 @@
  *******************************************************************************/
 package org.pgcodekeeper.cli.exception;
 
-import org.pgcodekeeper.core.schema.PgOverride;
+import org.pgcodekeeper.core.database.api.schema.ObjectOverride;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -44,13 +44,13 @@ public class LibraryObjectDuplicationException extends RuntimeException {
     }
 
     public LibraryObjectDuplicationException(String message, Throwable cause,
-            boolean enableSuppression, boolean writableStackTrace) {
+                                             boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 
-    public LibraryObjectDuplicationException(Collection<PgOverride> overrides) {
+    public LibraryObjectDuplicationException(Collection<ObjectOverride> overrides) {
         super("Library conflicts:\n" + overrides.stream() //$NON-NLS-1$
-        .map(o -> ENTRY.formatted(o.getType(), o.getName(), o.getOldPath(), o.getNewPath()))
-        .collect(Collectors.joining("\n"))); //$NON-NLS-1$
+                .map(o -> ENTRY.formatted(o.getType(), o.getName(), o.getOldPath(), o.getNewPath()))
+                .collect(Collectors.joining("\n"))); //$NON-NLS-1$
     }
 }

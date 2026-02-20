@@ -23,13 +23,10 @@ import org.pgcodekeeper.cli.opthandlers.DangerStatementOptionHandler;
 import org.pgcodekeeper.cli.opthandlers.DbObjTypeOptionHandler;
 import org.pgcodekeeper.core.Consts;
 import org.pgcodekeeper.core.DangerStatement;
-import org.pgcodekeeper.core.DatabaseType;
-import org.pgcodekeeper.core.database.base.IDatabaseProvider;
-import org.pgcodekeeper.core.database.ch.ChDatabaseProvider;
-import org.pgcodekeeper.core.database.ms.MsDatabaseProvider;
-import org.pgcodekeeper.core.database.pg.PgDatabaseProvider;
-import org.pgcodekeeper.core.formatter.FormatConfiguration;
-import org.pgcodekeeper.core.model.difftree.DbObjType;
+import org.pgcodekeeper.core.api.ApiRegistry;
+import org.pgcodekeeper.core.database.api.IDatabaseProvider;
+import org.pgcodekeeper.core.database.api.schema.DbObjType;
+import org.pgcodekeeper.core.database.base.formatter.FormatConfiguration;
 import org.pgcodekeeper.core.settings.ISettings;
 
 import java.io.ByteArrayOutputStream;
@@ -54,6 +51,9 @@ public class CliArgs implements ISettings {
         GRAPH
     }
 
+    private static final String PG = "PG";
+    private static final String MS = "MS";
+    private static final String CH = "CH";
     private static final String URL_START_JDBC = "jdbc:"; //$NON-NLS-1$
     private static final int DEFAULT_DEPTH = 10;
 
@@ -79,7 +79,7 @@ public class CliArgs implements ISettings {
         this.inCharsetName = Consts.UTF_8;
         this.outCharsetName = Consts.UTF_8;
         this.graphDepth = DEFAULT_DEPTH;
-        this.dbType = DatabaseType.PG;
+        this.dbType = PG;
         this.mode = CliMode.DIFF;
     }
     // SONAR-ON
@@ -90,174 +90,174 @@ public class CliArgs implements ISettings {
     // and not in the (internal) program logic to avoid confusion and accidents
     // only here, everything "source" refers to the NEW DB, and target to OLD DB
 
-    @Option(name="--help", help=true, usage="Help")
+    @Option(name = "--help", help = true, usage = "Help")
     private boolean zhelp;
 
-    @Option(name="--version", help=true, usage="Version")
+    @Option(name = "--version", help = true, usage = "Version")
     private boolean zversion;
 
-    @Option(name="--list-charsets", help=true, usage="ListCharsets")
+    @Option(name = "--list-charsets", help = true, usage = "ListCharsets")
     private boolean zlistCharsets;
 
-    @Option(name="--clear-lib-cache", help=true, usage="ClearLibCache")
+    @Option(name = "--clear-lib-cache", help = true, usage = "ClearLibCache")
     private boolean clearLibCache;
 
-    @Option(name="--mode", usage="mode")
+    @Option(name = "--mode", usage = "mode")
     private CliMode mode;
 
-    @Option(name="--source", depends="-t", aliases="-s", metaVar= CliArgsLocalizationsBundle.PATH_OR_JDBC,
-            usage="source")
-    @Argument(index=0, metaVar=CliArgsLocalizationsBundle.SOURCE, usage="source")
+    @Option(name = "--source", depends = "-t", aliases = "-s", metaVar = CliArgsLocalizationsBundle.PATH_OR_JDBC,
+            usage = "source")
+    @Argument(index = 0, metaVar = CliArgsLocalizationsBundle.SOURCE, usage = "source")
     private String newSrc;
 
-    @Option(name="--target", depends="-s", aliases="-t", metaVar=CliArgsLocalizationsBundle.PATH_OR_JDBC, usage="target")
-    @Argument(index=1, metaVar=CliArgsLocalizationsBundle.DEST, usage="target")
+    @Option(name = "--target", depends = "-s", aliases = "-t", metaVar = CliArgsLocalizationsBundle.PATH_OR_JDBC, usage = "target")
+    @Argument(index = 1, metaVar = CliArgsLocalizationsBundle.DEST, usage = "target")
     private String oldSrc;
 
-    @Option(name="--output", aliases="-o", metaVar=CliArgsLocalizationsBundle.PATH, usage="output")
+    @Option(name = "--output", aliases = "-o", metaVar = CliArgsLocalizationsBundle.PATH, usage = "output")
     private String outputTarget;
 
-    @Option(name="--run-on-target", aliases="-r", forbids="-R",
-            usage="run-on-target")
+    @Option(name = "--run-on-target", aliases = "-r", forbids = "-R",
+            usage = "run-on-target")
     private boolean runOnTarget;
 
-    @Option(name="--run-on", aliases="-R", metaVar=CliArgsLocalizationsBundle.JDBC, forbids="-r", usage="run-on")
+    @Option(name = "--run-on", aliases = "-R", metaVar = CliArgsLocalizationsBundle.JDBC, forbids = "-r", usage = "run-on")
     private String runOnDb;
 
-    @Option(name="--in-charset", metaVar=CliArgsLocalizationsBundle.CHARSET, usage="in-charset")
+    @Option(name = "--in-charset", metaVar = CliArgsLocalizationsBundle.CHARSET, usage = "in-charset")
     private String inCharsetName;
 
-    @Option(name="--out-charset", metaVar=CliArgsLocalizationsBundle.CHARSET, usage="out-charset")
+    @Option(name = "--out-charset", metaVar = CliArgsLocalizationsBundle.CHARSET, usage = "out-charset")
     private String outCharsetName;
 
-    @Option(name="--error", aliases="-E", usage = "error")
+    @Option(name = "--error", aliases = "-E", usage = "error")
     private boolean isDebug;
 
-    @Option(name="--ignore-errors", usage="ignore-errors")
+    @Option(name = "--ignore-errors", usage = "ignore-errors")
     private boolean ignoreErrors;
 
-    @Option(name="--no-privileges", aliases="-P", usage="no-privileges")
+    @Option(name = "--no-privileges", aliases = "-P", usage = "no-privileges")
     private boolean ignorePrivileges;
 
-    @Option(name="--keep-newlines", aliases="-L", usage="keep-newlines")
+    @Option(name = "--keep-newlines", aliases = "-L", usage = "keep-newlines")
     private boolean keepNewlines;
 
-    @Option(name="--simplify-views", usage="simplify-views")
+    @Option(name = "--simplify-views", usage = "simplify-views")
     private boolean simplifyView;
 
-    @Option(name="--add-transaction", aliases="-X", usage="add-transaction")
+    @Option(name = "--add-transaction", aliases = "-X", usage = "add-transaction")
     private boolean addTransaction;
 
-    @Option(name="--no-check-function-bodies", aliases="-F", usage="no-check-function-bodies")
+    @Option(name = "--no-check-function-bodies", aliases = "-F", usage = "no-check-function-bodies")
     private boolean disableCheckFunctionBodies;
 
-    @Option(name="--enable-function-bodies-dependencies", aliases="-f", usage="enable-function-bodies-dependencies")
+    @Option(name = "--enable-function-bodies-dependencies", aliases = "-f", usage = "enable-function-bodies-dependencies")
     private boolean enableFunctionBodiesDependencies;
 
-    @Option(name="--time-zone", aliases="-Z", metaVar=CliArgsLocalizationsBundle.TIMEZONE, usage="time-zone")
+    @Option(name = "--time-zone", aliases = "-Z", metaVar = CliArgsLocalizationsBundle.TIMEZONE, usage = "time-zone")
     private String timeZone;
 
-    @Option(name="--pre-script", metaVar=CliArgsLocalizationsBundle.PATH, usage="pre-script")
+    @Option(name = "--pre-script", metaVar = CliArgsLocalizationsBundle.PATH, usage = "pre-script")
     private List<String> preFilePath;
 
-    @Option(name="--post-script", metaVar=CliArgsLocalizationsBundle.PATH, usage="post-script")
+    @Option(name = "--post-script", metaVar = CliArgsLocalizationsBundle.PATH, usage = "post-script")
     private List<String> postFilePath;
 
-    @Option(name="--ignore-column-order", usage="ignore-column-order")
+    @Option(name = "--ignore-column-order", usage = "ignore-column-order")
     private boolean ignoreColumnOrder;
 
-    @Option(name="--generate-constraint-not-valid", aliases="-v", usage="generate-constraint-not-valid")
+    @Option(name = "--generate-constraint-not-valid", aliases = "-v", usage = "generate-constraint-not-valid")
     private boolean generateConstraintNotValid;
 
-    @Option(name="--using-off", usage="using-off")
+    @Option(name = "--using-off", usage = "using-off")
     private boolean usingTypeCastOff;
 
-    @Option(name="--migrate-data", usage="migrate-data")
+    @Option(name = "--migrate-data", usage = "migrate-data")
     private boolean dataMovementMode;
 
-    @Option(name="--concurrently-mode", aliases="-C", usage="concurrently-mode")
+    @Option(name = "--concurrently-mode", aliases = "-C", usage = "concurrently-mode")
     private boolean concurrentlyMode;
 
-    @Option(name="--generate-exist", usage="generate-exist")
+    @Option(name = "--generate-exist", usage = "generate-exist")
     private boolean generateExists;
 
-    @Option(name="--generate-exist-do-block", aliases="-do", usage="generate-exist-do-block")
+    @Option(name = "--generate-exist-do-block", aliases = "-do", usage = "generate-exist-do-block")
     private boolean generateExistDoBlock;
 
-    @Option(name="--drop-before-create", usage="drop-before-create")
+    @Option(name = "--drop-before-create", usage = "drop-before-create")
     private boolean dropBeforeCreate;
 
-    @Option(name="--comments-to-end", usage="comments-to-end")
+    @Option(name = "--comments-to-end", usage = "comments-to-end")
     private boolean commentsToEnd;
 
-    @Option(name="--safe-mode", aliases="-S", usage="safe-mode")
+    @Option(name = "--safe-mode", aliases = "-S", usage = "safe-mode")
     private boolean safeMode;
 
-    @Option(name="--allow-danger-ddl", aliases="-D", handler= DangerStatementOptionHandler.class, usage="allow-danger-ddl")
+    @Option(name = "--allow-danger-ddl", aliases = "-D", handler = DangerStatementOptionHandler.class, usage = "allow-danger-ddl")
     private List<DangerStatement> allowedDangers;
 
-    @Option(name="--allowed-object", aliases="-O", handler= DbObjTypeOptionHandler.class, usage="allowed-object")
+    @Option(name = "--allowed-object", aliases = "-O", handler = DbObjTypeOptionHandler.class, usage = "allowed-object")
     private List<DbObjType> allowedTypes;
 
-    @Option(name="--stop-not-allowed", usage = "stop-not-allowed")
+    @Option(name = "--stop-not-allowed", usage = "stop-not-allowed")
     private boolean stopNotAllowed;
 
-    @Option(name="--selected-only", usage="selected-only")
+    @Option(name = "--selected-only", usage = "selected-only")
     private boolean selectedOnly;
 
-    @Option(name="--ignore-list", aliases="-I", metaVar=CliArgsLocalizationsBundle.PATH, usage="ignore-list")
+    @Option(name = "--ignore-list", aliases = "-I", metaVar = CliArgsLocalizationsBundle.PATH, usage = "ignore-list")
     private List<String> ignoreLists;
 
-    @Option(name="--ignore-schema", metaVar=CliArgsLocalizationsBundle.PATH, usage="ignore-schema")
+    @Option(name = "--ignore-schema", metaVar = CliArgsLocalizationsBundle.PATH, usage = "ignore-schema")
     private String ignoreSchemaList;
 
-    @Option(name="--src-lib-xml", metaVar=CliArgsLocalizationsBundle.PATH, usage="src-lib-xml")
+    @Option(name = "--src-lib-xml", metaVar = CliArgsLocalizationsBundle.PATH, usage = "src-lib-xml")
     private List<String> targetLibXmls;
 
-    @Option(name="--src-lib", metaVar=CliArgsLocalizationsBundle.PATH_OR_JDBC, usage="src-lib")
+    @Option(name = "--src-lib", metaVar = CliArgsLocalizationsBundle.PATH_OR_JDBC, usage = "src-lib")
     private List<String> targetLibs;
 
-    @Option(name="--src-lib-no-priv", metaVar=CliArgsLocalizationsBundle.PATH_OR_JDBC, usage="src-lib-no-priv")
+    @Option(name = "--src-lib-no-priv", metaVar = CliArgsLocalizationsBundle.PATH_OR_JDBC, usage = "src-lib-no-priv")
     private List<String> targetLibsWithoutPriv;
 
-    @Option(name="--tgt-lib-xml", metaVar=CliArgsLocalizationsBundle.PATH, usage="tgt-lib-xml")
+    @Option(name = "--tgt-lib-xml", metaVar = CliArgsLocalizationsBundle.PATH, usage = "tgt-lib-xml")
     private List<String> sourceLibXmls;
 
-    @Option(name="--tgt-lib", metaVar=CliArgsLocalizationsBundle.PATH_OR_JDBC, usage="tgt-lib")
+    @Option(name = "--tgt-lib", metaVar = CliArgsLocalizationsBundle.PATH_OR_JDBC, usage = "tgt-lib")
     private List<String> sourceLibs;
 
-    @Option(name="--tgt-lib-no-priv", metaVar=CliArgsLocalizationsBundle.PATH_OR_JDBC, usage="tgt-lib-no-priv")
+    @Option(name = "--tgt-lib-no-priv", metaVar = CliArgsLocalizationsBundle.PATH_OR_JDBC, usage = "tgt-lib-no-priv")
     private List<String> sourceLibsWithoutPriv;
 
-    @Option(name="--lib-safe-mode", usage="lib-safe-mode")
+    @Option(name = "--lib-safe-mode", usage = "lib-safe-mode")
     private boolean libSafeMode;
 
-    @Option(name="--ignore-concurrent-modification", aliases="-m", usage="ignore-concurrent-modification")
+    @Option(name = "--ignore-concurrent-modification", aliases = "-m", usage = "ignore-concurrent-modification")
     private boolean ignoreConcurrentModification;
 
-    @Option(name="--db-type", usage="db-type")
-    private DatabaseType dbType;
+    @Option(name = "--db-type", metaVar = CliArgsLocalizationsBundle.DB_TYPES, usage = "db-type")
+    private String dbType;
 
-    @Option(name="--update-project", usage="update-project")
+    @Option(name = "--update-project", usage = "update-project")
     private boolean projUpdate;
 
-    @Option(name="--graph-depth", metaVar=CliArgsLocalizationsBundle.N, usage="graph-depth")
+    @Option(name = "--graph-depth", metaVar = CliArgsLocalizationsBundle.N, usage = "graph-depth")
     private int graphDepth;
 
-    @Option(name="--graph-reverse", depends="--graph-name", usage="graph-reverse")
+    @Option(name = "--graph-reverse", depends = "--graph-name", usage = "graph-reverse")
     private boolean graphReverse;
 
-    @Option(name="--graph-name", metaVar=CliArgsLocalizationsBundle.NAME, usage="graph-name")
+    @Option(name = "--graph-name", metaVar = CliArgsLocalizationsBundle.NAME, usage = "graph-name")
     private List<String> graphNames;
 
-    @Option(name="--graph-filter-object", handler=DbObjTypeOptionHandler.class, usage="graph-filter-object")
+    @Option(name = "--graph-filter-object", handler = DbObjTypeOptionHandler.class, usage = "graph-filter-object")
     private List<DbObjType> graphFilterTypes;
 
-    @Option(name="--graph-invert-filter", depends="--graph-filter-object", usage="graph-invert-filter")
+    @Option(name = "--graph-invert-filter", depends = "--graph-filter-object", usage = "graph-invert-filter")
     private boolean graphInvertFilter;
 
-    @Option(name="--cluster-name", usage="cluster-name")
-    private String сlusterName;
+    @Option(name = "--cluster-name", metaVar = CliArgsLocalizationsBundle.NAME, usage = "cluster-name")
+    private String clusterName;
 
     CliMode getMode() {
         return mode;
@@ -339,11 +339,6 @@ public class CliArgs implements ISettings {
 
     public boolean isLibSafeMode() {
         return libSafeMode;
-    }
-
-    @Override
-    public DatabaseType getDbType() {
-        return dbType;
     }
 
     @Override
@@ -503,7 +498,7 @@ public class CliArgs implements ISettings {
 
     @Override
     public String getClusterName() {
-        return сlusterName;
+        return clusterName;
     }
 
     @Override
@@ -560,7 +555,7 @@ public class CliArgs implements ISettings {
         args.timeZone = timeZone;
         args.usingTypeCastOff = usingTypeCastOff;
         args.provider = provider;
-        args.сlusterName = сlusterName;
+        args.clusterName = clusterName;
         return args;
     }
 
@@ -572,10 +567,9 @@ public class CliArgs implements ISettings {
     /**
      * Parses command line arguments or outputs instructions.
      *
-     * @param args   array of arguments
-     *
+     * @param args array of arguments
      * @return true if arguments were parsed and execution can continue,
-     *         otherwise false
+     * otherwise false
      */
     public boolean parse(String[] args) throws CmdLineException {
         if (args.length != 0) {
@@ -613,16 +607,8 @@ public class CliArgs implements ISettings {
             oldSrc = outputTarget;
         }
 
-        createProvider();
+        provider = ApiRegistry.get(dbType);
         return true;
-    }
-
-    private void createProvider() {
-        provider = switch (dbType) {
-            case PG -> new PgDatabaseProvider();
-            case MS -> new MsDatabaseProvider();
-            case CH -> new ChDatabaseProvider();
-        };
     }
 
     private void checkParams() throws CmdLineException {
@@ -631,7 +617,7 @@ public class CliArgs implements ISettings {
         }
 
         if (CliMode.DIFF == mode) {
-            if (dbType == DatabaseType.PG && addTransaction && concurrentlyMode) {
+            if (dbType.equals(PG) && addTransaction && concurrentlyMode) {
                 badArgs(Messages.CliArgs_error_concurrently_mode_wrong_option);
             }
             if (runOnTarget && !oldSrc.startsWith(URL_START_JDBC)) {
@@ -684,13 +670,12 @@ public class CliArgs implements ISettings {
     }
 
     private void checkDbTypesParam() throws CmdLineException {
-        badArgWithWrongDbType(simplifyView, "--simplify-views", DatabaseType.MS, DatabaseType.CH); //$NON-NLS-1$
-        badArgWithWrongDbType(timeZone != null, "--time-zone (-Z)", DatabaseType.MS, DatabaseType.CH); //$NON-NLS-1$
-        badArgWithWrongDbType(generateExistDoBlock, "--generate-exist-do-block (-do)", DatabaseType.MS, //$NON-NLS-1$
-                DatabaseType.CH);
-        badArgWithWrongDbType(concurrentlyMode, "--concurrently-mode (-C)", DatabaseType.CH); //$NON-NLS-1$
-        badArgWithWrongDbType(commentsToEnd, "--comments-to-end", DatabaseType.CH); //$NON-NLS-1$
-        badArgWithWrongDbType(null != сlusterName, "--cluster-name", DatabaseType.PG, DatabaseType.MS); //$NON-NLS-1$
+        badArgWithWrongDbType(simplifyView, "--simplify-views", MS, CH); //$NON-NLS-1$
+        badArgWithWrongDbType(timeZone != null, "--time-zone (-Z)", MS, CH); //$NON-NLS-1$
+        badArgWithWrongDbType(generateExistDoBlock, "--generate-exist-do-block (-do)", MS, CH); //$NON-NLS-1$
+        badArgWithWrongDbType(concurrentlyMode, "--concurrently-mode (-C)", CH); //$NON-NLS-1$
+        badArgWithWrongDbType(commentsToEnd, "--comments-to-end", CH); //$NON-NLS-1$
+        badArgWithWrongDbType(null != clusterName, "--cluster-name", PG, MS); //$NON-NLS-1$
     }
 
     private void badArgWithCorrectModes(boolean condition, String param, CliMode... modes) throws CmdLineException {
@@ -699,9 +684,9 @@ public class CliArgs implements ISettings {
         }
     }
 
-    private void badArgWithWrongDbType(boolean condition, String arg, DatabaseType... wrongDbTypes)
+    private void badArgWithWrongDbType(boolean condition, String arg, String... wrongDbNames)
             throws CmdLineException {
-        if (condition && containsInArray(dbType, wrongDbTypes)) {
+        if (condition && containsInArray(dbType, wrongDbNames)) {
             badArgs(Messages.CliArgs_error_wrong_db_type.formatted(arg, dbType));
         }
     }
@@ -742,7 +727,7 @@ public class CliArgs implements ISettings {
 
     private <T> boolean containsInArray(T element, T[] elements) {
         for (T t : elements) {
-            if (t == element) {
+            if (t.equals(element)) {
                 return true;
             }
         }

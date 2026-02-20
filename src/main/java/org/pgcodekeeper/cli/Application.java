@@ -22,13 +22,13 @@ package org.pgcodekeeper.cli;
 import org.kohsuke.args4j.CmdLineException;
 import org.pgcodekeeper.cli.localizations.Messages;
 import org.pgcodekeeper.core.DangerStatement;
-import org.pgcodekeeper.core.PgCodekeeperException;
-import org.pgcodekeeper.core.database.base.jdbc.IJdbcConnector;
-import org.pgcodekeeper.core.loader.JdbcRunner;
-import org.pgcodekeeper.core.model.graph.DepcyFinder;
-import org.pgcodekeeper.core.model.graph.InsertWriter;
-import org.pgcodekeeper.core.parsers.antlr.base.ScriptParser;
-import org.pgcodekeeper.core.schema.AbstractDatabase;
+import org.pgcodekeeper.core.api.ApiRegistry;
+import org.pgcodekeeper.core.api.PgCodeKeeperApi;
+import org.pgcodekeeper.core.database.api.loader.ILoader;
+import org.pgcodekeeper.core.database.ch.ChDatabaseProvider;
+import org.pgcodekeeper.core.database.ms.MsDatabaseProvider;
+import org.pgcodekeeper.core.database.pg.PgDatabaseProvider;
+import org.pgcodekeeper.core.settings.DiffSettings;
 import org.pgcodekeeper.core.utils.FileUtils;
 import org.pgcodekeeper.core.utils.UnixPrintWriter;
 import org.slf4j.Logger;
@@ -41,6 +41,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -65,6 +66,10 @@ public final class Application {
      * @return success value
      */
     static boolean process(String[] args) {
+        ApiRegistry.register(new PgDatabaseProvider());
+        ApiRegistry.register(new MsDatabaseProvider());
+        ApiRegistry.register(new ChDatabaseProvider());
+
         CliArgs arguments = new CliArgs();
         try {
             if (!arguments.parse(args)) {
@@ -104,20 +109,20 @@ public final class Application {
     private static boolean diff(CliArgs arguments)
             throws InterruptedException, IOException, SQLException {
         try (PrintWriter encodedWriter = getDiffWriter(arguments)) {
-            var diff = new PgDiffCli(arguments);
+            var diffSettings = new DiffSettings(arguments);
+            var diff = new PgDiffCli(arguments, diffSettings);
             String text;
             try {
                 LOG.info(Messages.Main_log_create_script);
                 text = diff.createDiff();
-            } catch (PgCodekeeperException ex) {
+            } catch (IllegalStateException ex) {
                 printError(diff);
                 return false;
             }
 
-            ScriptParser parser = new ScriptParser("CLI", text, arguments); //$NON-NLS-1$
-
             if (arguments.isSafeMode()) {
-                var dangerTypes = parser.getDangerDdl(arguments.getAllowedDangers());
+                Set<DangerStatement> dangerTypes = PgCodeKeeperApi.checkDangerousStatements(
+                        arguments.getProvider(), "CLI", text, diffSettings, arguments.getAllowedDangers());
 
                 if (!dangerTypes.isEmpty()) {
                     String dangerStmt = dangerTypes.stream().map(DangerStatement::name)
@@ -144,7 +149,7 @@ public final class Application {
                 }
 
                 LOG.info(Messages.Main_log_apply_migration_script);
-                new JdbcRunner().runBatches(getConnector(arguments, url), parser.batch(), null);
+                PgCodeKeeperApi.runSQL(arguments.getProvider(), "CLI", text, url, diffSettings);
             } else if (encodedWriter == null) {
                 writeToConsole(text);
             }
@@ -160,8 +165,8 @@ public final class Application {
         return outFile == null ? null : new UnixPrintWriter(outFile, arguments.getOutCharsetName());
     }
 
-    private static boolean parse(CliArgs arguments) throws IOException, InterruptedException, PgCodekeeperException {
-        PgDiffCli diff = new PgDiffCli(arguments);
+    private static boolean parse(CliArgs arguments) throws IOException, InterruptedException {
+        PgDiffCli diff = new PgDiffCli(arguments, new DiffSettings(arguments));
         try {
             if (arguments.isProjUpdate()) {
                 LOG.info(Messages.Main_log_start_update_proj);
@@ -170,7 +175,7 @@ public final class Application {
                 LOG.info(Messages.Main_log_start_export_proj);
                 diff.exportProject();
             }
-        } catch (PgCodekeeperException ex) {
+        } catch (IllegalStateException ex) {
             diff.getErrors().forEach(Application::writeError);
             return false;
         }
@@ -179,22 +184,20 @@ public final class Application {
         return true;
     }
 
-    private static IJdbcConnector getConnector(CliArgs arguments, String url) {
-        return arguments.getProvider().getJdbcConnector(url);
-    }
-
     private static boolean graph(CliArgs arguments) throws IOException, InterruptedException {
-        var diff = new PgDiffCli(arguments);
-        AbstractDatabase d;
+        var diff = new PgDiffCli(arguments, new DiffSettings(arguments));
+        ILoader dbLoader;
         try {
-            d = diff.loadNewDatabaseWithLibraries();
-        } catch (PgCodekeeperException ex) {
+            dbLoader = diff.getDatabaseLoader(arguments.getNewSrc(),
+                    arguments.getTargetLibXmls(), arguments.getTargetLibs(), arguments.getTargetLibsWithoutPriv());
+        } catch (IllegalStateException ex) {
             printError(diff);
             return false;
         }
         LOG.info(Messages.Main_log_build_graph_deps);
-        List<String> dependencies = DepcyFinder.byPatterns(arguments.getGraphDepth(), arguments.isGraphReverse(),
-                arguments.getGraphFilterTypes(), arguments.isGraphInvertFilter(), d, arguments.getGraphNames());
+        List<String> dependencies = PgCodeKeeperApi.analyzeDependencies(dbLoader, arguments.getGraphNames(),
+                arguments.getGraphDepth(), arguments.isGraphReverse(),
+                arguments.getGraphFilterTypes(), arguments.isGraphInvertFilter());
 
         try (PrintWriter pw = getDiffWriter(arguments)) {
             Consumer<String> consumer = pw != null ? pw::println : Application::writeToConsole;

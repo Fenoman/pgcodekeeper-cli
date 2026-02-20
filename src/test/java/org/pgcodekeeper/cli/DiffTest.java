@@ -15,6 +15,11 @@
  *******************************************************************************/
 package org.pgcodekeeper.cli;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -23,11 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.stream.Stream;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 class DiffTest {
 
@@ -45,6 +45,8 @@ class DiffTest {
                 Arguments.of(new AllowedObjectsChangeTrackingArgumentsProvider()),
                 Arguments.of(new AllowedObjectsSysVerArgumentsProvider()),
                 Arguments.of(new LibrariesArgumentsProvider()),
+                Arguments.of(new LibrariesNoPrivArgumentsProvider()),
+                Arguments.of(new LibrariesXmlArgumentsProvider()),
                 Arguments.of(new SelectedOnlyArgumentsProvider()),
                 Arguments.of(new AddConstraintNotValid()),
                 Arguments.of(new AddDropBeforeCreate()),
@@ -78,7 +80,7 @@ class DiffTest {
 
     private boolean filesEqualIgnoreNewLines(Path f1, Path f2) throws IOException {
         try (BufferedReader reader1 = Files.newBufferedReader(f1, StandardCharsets.UTF_8);
-                BufferedReader reader2 = Files.newBufferedReader(f2, StandardCharsets.UTF_8);) {
+             BufferedReader reader2 = Files.newBufferedReader(f2, StandardCharsets.UTF_8);) {
 
             while (true) {
                 String line1 = getNextLine(reader1);
@@ -97,7 +99,7 @@ class DiffTest {
     /**
      * Iterates through <code>reader</code> line by line until reaches not empty line or EOF
      *
-     * @return  next not empty line or null if EOF is reached
+     * @return next not empty line or null if EOF is reached
      */
     private String getNextLine(BufferedReader reader) throws IOException {
         String nextLine;
@@ -144,7 +146,7 @@ class AddTestArgumentsProvider extends ArgumentsProvider {
         Path fOriginal = getFile(FILES_POSTFIX.ORIGINAL_SQL);
 
         return new String[]{"-o", getDiffResultFile().toString(),
-                "-t", fOriginal.toString(), "-s",  fNew.toString()};
+                "-t", fOriginal.toString(), "-s", fNew.toString()};
     }
 }
 
@@ -269,7 +271,7 @@ class IgnoreListsArgumentsProvider extends ArgumentsProvider {
         String oldPath = TestUtils.getPathToResource(DiffTest.class, "ignore_old.sql").toString();
         String newPath = TestUtils.getPathToResource(DiffTest.class, "ignore_new.sql").toString();
 
-        return new String[] {"--ignore-list", black.toString(), "-I", white.toString(), "-o",
+        return new String[]{"--ignore-list", black.toString(), "-I", white.toString(), "-o",
                 getDiffResultFile().toString(), newPath, oldPath};
     }
 }
@@ -294,7 +296,7 @@ class AllowedObjectsArgumentsProvider extends ArgumentsProvider {
 }
 
 /**
- * {@link ArgumentsProvider} implementation for libraries test
+ * {@link ArgumentsProvider} implementation for libraries test with --tgt-lib
  */
 class LibrariesArgumentsProvider extends ArgumentsProvider {
 
@@ -304,13 +306,64 @@ class LibrariesArgumentsProvider extends ArgumentsProvider {
 
     @Override
     protected String[] args() throws URISyntaxException, IOException {
-        Path fNew = getFile(FILES_POSTFIX.NEW_SQL);
-        Path fOriginal = getFile(FILES_POSTFIX.ORIGINAL_SQL);
+        Path projectDir = exportToProject();
         Path lib = TestUtils.getPathToResource(DiffTest.class, "lib.sql");
+        Path fNew = getFile(FILES_POSTFIX.NEW_SQL);
 
-        return new String[] {"-o", getDiffResultFile().toString(),
-                "-t", fOriginal.toString(), "-s", fNew.toString(),
-                "--tgt-lib", lib.toString()};
+        return new String[]{"-o", getDiffResultFile().toString(),
+                "-t", projectDir.toString(), "--tgt-lib", lib.toString(),
+                "-s", fNew.toString()};
+    }
+
+    protected Path exportToProject() throws URISyntaxException, IOException {
+        Path projectDir = getParseResultDir().get();
+        Path dumpFile = getFile(FILES_POSTFIX.ORIGINAL_SQL);
+        Application.process(new String[]{
+                "--mode", "parse", "-o", projectDir.toString(), dumpFile.toString()
+        });
+        return projectDir;
+    }
+}
+
+/**
+ * {@link ArgumentsProvider} implementation for libraries test with --tgt-lib-no-priv
+ */
+class LibrariesNoPrivArgumentsProvider extends LibrariesArgumentsProvider {
+
+    @Override
+    protected String[] args() throws URISyntaxException, IOException {
+        Path projectDir = exportToProject();
+        Path lib = TestUtils.getPathToResource(DiffTest.class, "lib.sql");
+        Path fNew = getFile(FILES_POSTFIX.NEW_SQL);
+
+        return new String[]{"-o", getDiffResultFile().toString(),
+                "-t", projectDir.toString(), "--tgt-lib-no-priv", lib.toString(),
+                "-s", fNew.toString()};
+    }
+}
+
+/**
+ * {@link ArgumentsProvider} implementation for libraries test with --tgt-lib-xml
+ */
+class LibrariesXmlArgumentsProvider extends LibrariesArgumentsProvider {
+
+    @Override
+    protected String[] args() throws URISyntaxException, IOException {
+        Path projectDir = exportToProject();
+        Path lib = TestUtils.getPathToResource(DiffTest.class, "lib.sql");
+        Path fNew = getFile(FILES_POSTFIX.NEW_SQL);
+
+        Path xmlFile = projectDir.resolve("lib_dependencies.xml");
+        Files.writeString(xmlFile, """
+                <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+                <dependencies loadNested="false">
+                    <dependency ignorePriv="false" owner="" path="%s"/>
+                </dependencies>
+                """.formatted(lib.toString()));
+
+        return new String[]{"-o", getDiffResultFile().toString(),
+                "-t", projectDir.toString(), "--tgt-lib-xml", xmlFile.toString(),
+                "-s", fNew.toString()};
     }
 }
 
@@ -348,8 +401,8 @@ class AllowedObjectsChangeTrackingArgumentsProvider extends ArgumentsProvider {
     protected String[] args() throws URISyntaxException, IOException {
         Path fNew = getFile(FILES_POSTFIX.NEW_SQL);
         Path fOriginal = getFile(FILES_POSTFIX.ORIGINAL_SQL);
-        return new String[] { "--db-type", "MS", "-O", "CONSTRAINT", "-o", getDiffResultFile().toString(),
-                fNew.toString(), fOriginal.toString() };
+        return new String[]{"--db-type", "MS", "-O", "CONSTRAINT", "-o", getDiffResultFile().toString(),
+                fNew.toString(), fOriginal.toString()};
     }
 }
 
@@ -367,8 +420,8 @@ class AllowedObjectsSysVerArgumentsProvider extends ArgumentsProvider {
     protected String[] args() throws URISyntaxException, IOException {
         Path fNew = getFile(FILES_POSTFIX.NEW_SQL);
         Path fOriginal = getFile(FILES_POSTFIX.ORIGINAL_SQL);
-        return new String[] { "--db-type", "MS", "-O", "CONSTRAINT", "-o", getDiffResultFile().toString(),
-                fNew.toString(), fOriginal.toString() };
+        return new String[]{"--db-type", "MS", "-O", "CONSTRAINT", "-o", getDiffResultFile().toString(),
+                fNew.toString(), fOriginal.toString()};
     }
 }
 
@@ -387,10 +440,11 @@ class AddConstraintNotValid extends ArgumentsProvider {
         Path fNew = getFile(FILES_POSTFIX.NEW_SQL);
         Path fOriginal = getFile(FILES_POSTFIX.ORIGINAL_SQL);
 
-        return new String[] {"-v", "-o", getDiffResultFile().toString(),
+        return new String[]{"-v", "-o", getDiffResultFile().toString(),
                 fNew.toString(), fOriginal.toString()};
     }
 }
+
 /**
  * {@link ArgumentsProvider} implementation for generate DROP before CREATE test
  */
@@ -405,10 +459,11 @@ class AddDropBeforeCreate extends ArgumentsProvider {
         Path fNew = getFile(FILES_POSTFIX.NEW_SQL);
         Path fOriginal = getFile(FILES_POSTFIX.ORIGINAL_SQL);
 
-        return new String[] {"--drop-before-create", "-o", getDiffResultFile().toString(),
+        return new String[]{"--drop-before-create", "-o", getDiffResultFile().toString(),
                 fNew.toString(), fOriginal.toString()};
     }
 }
+
 /**
  * {@link ArgumentsProvider} implementation for print checking existence sequence, constraints
  */
@@ -423,7 +478,7 @@ class GenerateExistDoBlock extends ArgumentsProvider {
         Path fNew = getFile(FILES_POSTFIX.NEW_SQL);
         Path fOriginal = getFile(FILES_POSTFIX.ORIGINAL_SQL);
 
-        return new String[] {"-do", "-o", getDiffResultFile().toString(),
+        return new String[]{"-do", "-o", getDiffResultFile().toString(),
                 fNew.toString(), fOriginal.toString()};
     }
 }

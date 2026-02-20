@@ -15,157 +15,101 @@
  *******************************************************************************/
 package org.pgcodekeeper.cli;
 
-import org.pgcodekeeper.cli.exception.LibraryObjectDuplicationException;
 import org.pgcodekeeper.cli.localizations.Messages;
-import org.pgcodekeeper.core.PgCodekeeperException;
-import org.pgcodekeeper.core.api.DatabaseFactory;
 import org.pgcodekeeper.core.api.PgCodeKeeperApi;
-import org.pgcodekeeper.core.loader.FullAnalyze;
-import org.pgcodekeeper.core.loader.LibraryLoader;
-import org.pgcodekeeper.core.loader.ProjectLoader;
-import org.pgcodekeeper.core.schema.AbstractDatabase;
-import org.pgcodekeeper.core.schema.PgOverride;
-import org.pgcodekeeper.core.xmlstore.DependenciesXmlStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.pgcodekeeper.core.database.api.IDatabaseProvider;
+import org.pgcodekeeper.core.database.api.loader.ILoader;
+import org.pgcodekeeper.core.settings.DiffSettings;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-public final class PgDiffCli {
-    private static final Logger LOG = LoggerFactory.getLogger(PgDiffCli.class);
-    private final List<Object> errors = new ArrayList<>();
-    private final CliArgs arguments;
 
-    public PgDiffCli(CliArgs arguments) {
+public final class PgDiffCli {
+
+    private final CliArgs arguments;
+    private final DiffSettings diffSettings;
+
+    public PgDiffCli(CliArgs arguments, DiffSettings diffSettings) {
         this.arguments = arguments;
+        this.diffSettings = diffSettings;
     }
 
     public void updateProject()
-            throws IOException, InterruptedException, PgCodekeeperException {
-        AbstractDatabase oldDatabase = loadOldDatabaseWithLibraries();
-        AbstractDatabase newDatabase = loadNewDatabaseWithLibraries();
+            throws IOException, InterruptedException {
+        addIgnoreLists();
+        var oldDbLoader = getDatabaseLoader(arguments.getOldSrc(),
+                arguments.getSourceLibXmls(), arguments.getSourceLibs(), arguments.getSourceLibsWithoutPriv());
+        var newDbLoader = getDatabaseLoader(arguments.getNewSrc(),
+                arguments.getTargetLibXmls(), arguments.getTargetLibs(), arguments.getTargetLibsWithoutPriv());
 
-        PgCodeKeeperApi.update(arguments, oldDatabase, newDatabase,
-                arguments.getOutputTarget(), arguments.getIgnoreLists(), null);
+        PgCodeKeeperApi.exportToProject(arguments.getProvider(), oldDbLoader, newDbLoader,
+                Path.of(arguments.getOutputTarget()), diffSettings);
+
+        assertErrorsEmpty();
     }
 
-    public void exportProject() throws IOException, InterruptedException, PgCodekeeperException {
-        AbstractDatabase newDb = loadDatabaseSchema(arguments.getNewSrc());
-        PgCodeKeeperApi.export(arguments, newDb, arguments.getOutputTarget(), arguments.getIgnoreLists(), null);
+    public void exportProject() throws IOException, InterruptedException {
+        addIgnoreLists();
+        var newDbLoader = getDatabaseLoader(arguments.getNewSrc(),
+                arguments.getTargetLibXmls(), arguments.getTargetLibs(), arguments.getTargetLibsWithoutPriv());
+
+        PgCodeKeeperApi.exportToProject(arguments.getProvider(), null, newDbLoader,
+                Path.of(arguments.getOutputTarget()), diffSettings);
+
+        assertErrorsEmpty();
     }
 
-    public String createDiff() throws InterruptedException, IOException, PgCodekeeperException {
-        AbstractDatabase oldDatabase = loadOldDatabaseWithLibraries();
-        AbstractDatabase newDatabase = loadNewDatabaseWithLibraries();
-        return PgCodeKeeperApi.diff(arguments, oldDatabase, newDatabase, arguments.getIgnoreLists());
-    }
+    public String createDiff() throws InterruptedException, IOException {
+        addIgnoreLists();
+        var oldDbLoader = getDatabaseLoader(arguments.getOldSrc(),
+                arguments.getSourceLibXmls(), arguments.getSourceLibs(), arguments.getSourceLibsWithoutPriv());
+        var newDbLoader = getDatabaseLoader(arguments.getNewSrc(),
+                arguments.getTargetLibXmls(), arguments.getTargetLibs(), arguments.getTargetLibsWithoutPriv());
 
-    public AbstractDatabase loadNewDatabaseWithLibraries()
-            throws IOException, InterruptedException, PgCodekeeperException {
-        LOG.info(Messages.PgDiffCli_log_load_new_db);
-        AbstractDatabase newDatabase = loadDatabaseSchema(arguments.getNewSrc());
-        LOG.info(Messages.PgDiffCli_log_load_new_db_lib);
-        loadLibraries(newDatabase, arguments.getTargetLibXmls(), arguments.getTargetLibs(),
-                arguments.getTargetLibsWithoutPriv());
+        var script = PgCodeKeeperApi.diff(arguments.getProvider(), oldDbLoader, newDbLoader, diffSettings);
 
-        List<PgOverride> overrides = newDatabase.getOverrides();
-        if (arguments.isLibSafeMode() && !overrides.isEmpty()) {
-            LOG.error(Messages.PgDiffCli_log_lib_have_dupl);
-            throw new LibraryObjectDuplicationException(overrides);
-        }
+        assertErrorsEmpty();
 
-        // read additional privileges from special folder
-        LOG.info(Messages.PgDiffCli_log_load_new_db_overrides);
-        loadOverrides(newDatabase, arguments.getNewSrc());
-
-        LOG.info(Messages.PgDiffCli_log_start_db_analyze);
-        analyzeDatabase(newDatabase);
-
-        return newDatabase;
-    }
-
-    public AbstractDatabase loadOldDatabaseWithLibraries()
-            throws IOException, InterruptedException, PgCodekeeperException {
-        LOG.info(Messages.PgDiffCli_log_load_old_db);
-        AbstractDatabase oldDatabase = loadDatabaseSchema(arguments.getOldSrc());
-
-        LOG.info(Messages.PgDiffCli_log_load_old_db_lib);
-        loadLibraries(oldDatabase, arguments.getSourceLibXmls(), arguments.getSourceLibs(),
-                arguments.getSourceLibsWithoutPriv());
-
-        List<PgOverride> overrides = oldDatabase.getOverrides();
-        if (arguments.isLibSafeMode() && !overrides.isEmpty()) {
-            LOG.error(Messages.PgDiffCli_log_lib_have_dupl);
-            throw new LibraryObjectDuplicationException(overrides);
-        }
-        LOG.info(Messages.PgDiffCli_log_load_old_db_overrides);
-        // read additional privileges from special folder
-        loadOverrides(oldDatabase, arguments.getOldSrc());
-
-        LOG.info(Messages.PgDiffCli_log_start_db_analyze);
-        analyzeDatabase(oldDatabase);
-
-        return oldDatabase;
-    }
-
-    private void analyzeDatabase(AbstractDatabase db)
-            throws InterruptedException, IOException, PgCodekeeperException {
-        FullAnalyze.fullAnalyze(db, errors);
-        assertErrors();
-    }
-
-    private void loadOverrides(AbstractDatabase db, String source)
-            throws InterruptedException, IOException, PgCodekeeperException {
-        if (SourceFormat.PARSED != SourceFormat.parsePath(source)) {
-            return;
-        }
-
-        new ProjectLoader(source, arguments, errors).loadOverrides(db);
-        assertErrors();
-    }
-
-    private void loadLibraries(AbstractDatabase db, Collection<String> libXmls, Collection<String> libs,
-            Collection<String> libsWithoutPrivileges)
-            throws InterruptedException, IOException, PgCodekeeperException {
-        LibraryLoader ll = new LibraryLoader(db, Utils.getMetaPath(), errors);
-
-        for (String xml : libXmls) {
-            ll.loadXml(new DependenciesXmlStore(Paths.get(xml)), arguments);
-        }
-
-        ll.loadLibraries(arguments, false, libs);
-        ll.loadLibraries(arguments, true, libsWithoutPrivileges);
-        assertErrors();
-    }
-
-    /**
-     * Loads database schema choosing the provided method.
-     *
-     * @param srcPath path to the database source to load
-     *
-     * @return the loaded database
-     */
-    private AbstractDatabase loadDatabaseSchema(String srcPath)
-            throws InterruptedException, IOException, PgCodekeeperException {
-        var factory = new DatabaseFactory(arguments, arguments.isIgnoreErrors(), false);
-        return switch (SourceFormat.parsePath(srcPath)) {
-        case DB -> factory.loadFromJdbc(srcPath, arguments.getIgnoreSchemaList());
-        case DUMP -> factory.loadFromDump(srcPath);
-        case PARSED -> factory.loadFromProject(srcPath, arguments.getIgnoreSchemaList());
-        };
-    }
-
-    private void assertErrors() throws PgCodekeeperException {
-        if (!errors.isEmpty() && !arguments.isIgnoreErrors()) {
-            throw new PgCodekeeperException(Messages.PgDiffCli_error_while_load_database);
-        }
+        return script;
     }
 
     public List<Object> getErrors() {
-        return errors;
+        return Collections.unmodifiableList(diffSettings.getErrors());
+    }
+
+    public ILoader getDatabaseLoader(String srcPath, Collection<String> libXmls, Collection<String> libs,
+                                     Collection<String> libsWithoutPriv) {
+        IDatabaseProvider provider = arguments.getProvider();
+
+        final Path actualPath = Paths.get(srcPath);
+        return switch (SourceFormat.parsePath(srcPath)) {
+            case DB -> provider.getJdbcLoader(srcPath, diffSettings);
+            case DUMP -> provider.getDumpLoader(actualPath, diffSettings);
+            case PARSED -> provider.getProjectLoader(actualPath, diffSettings, libXmls, libs, libsWithoutPriv,
+                    Utils.getMetaPath());
+        };
+    }
+
+    private void assertErrorsEmpty() {
+        if (!getErrors().isEmpty() && !arguments.isIgnoreErrors()) {
+            throw new IllegalStateException(Messages.PgDiffCli_error_while_load_database);
+        }
+    }
+
+    private void addIgnoreLists() throws IOException {
+        for (String ignorePath : arguments.getIgnoreLists()) {
+            if (ignorePath != null) {
+                diffSettings.addIgnoreList(Paths.get(ignorePath));
+            }
+        }
+
+        if (arguments.getIgnoreSchemaList() != null) {
+            diffSettings.addIgnoreSchemaList(Paths.get(arguments.getIgnoreSchemaList()));
+        }
     }
 }
