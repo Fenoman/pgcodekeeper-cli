@@ -15,15 +15,15 @@
  *******************************************************************************/
 package org.pgcodekeeper.cli.opthandlers;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.OptionDef;
 import org.kohsuke.args4j.spi.EnumOptionHandler;
 import org.kohsuke.args4j.spi.Setter;
-import org.pgcodekeeper.core.model.difftree.DbObjType;
+import org.pgcodekeeper.core.database.api.schema.DbObjType;
+
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 public class DbObjTypeOptionHandler extends EnumOptionHandler<DbObjType> {
