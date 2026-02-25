@@ -22,7 +22,6 @@ package org.pgcodekeeper.cli;
 import org.kohsuke.args4j.CmdLineException;
 import org.pgcodekeeper.cli.localizations.Messages;
 import org.pgcodekeeper.core.DangerStatement;
-import org.pgcodekeeper.core.api.ApiRegistry;
 import org.pgcodekeeper.core.api.PgCodeKeeperApi;
 import org.pgcodekeeper.core.database.api.loader.ILoader;
 import org.pgcodekeeper.core.database.ch.ChDatabaseProvider;
@@ -66,9 +65,6 @@ public final class Application {
      * @return success value
      */
     static boolean process(String[] args) {
-        ApiRegistry.register(new PgDatabaseProvider());
-        ApiRegistry.register(new MsDatabaseProvider());
-        ApiRegistry.register(new ChDatabaseProvider());
 
         CliArgs arguments = new CliArgs();
         try {

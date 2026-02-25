@@ -23,10 +23,12 @@ import org.pgcodekeeper.cli.opthandlers.DangerStatementOptionHandler;
 import org.pgcodekeeper.cli.opthandlers.DbObjTypeOptionHandler;
 import org.pgcodekeeper.core.Consts;
 import org.pgcodekeeper.core.DangerStatement;
-import org.pgcodekeeper.core.api.ApiRegistry;
 import org.pgcodekeeper.core.database.api.IDatabaseProvider;
 import org.pgcodekeeper.core.database.api.schema.DbObjType;
 import org.pgcodekeeper.core.database.base.formatter.FormatConfiguration;
+import org.pgcodekeeper.core.database.ch.ChDatabaseProvider;
+import org.pgcodekeeper.core.database.ms.MsDatabaseProvider;
+import org.pgcodekeeper.core.database.pg.PgDatabaseProvider;
 import org.pgcodekeeper.core.settings.ISettings;
 
 import java.io.ByteArrayOutputStream;
@@ -607,7 +609,20 @@ public class CliArgs implements ISettings {
             oldSrc = outputTarget;
         }
 
-        provider = ApiRegistry.get(dbType);
+
+        switch (dbType) {
+            case "PG":
+                provider = new PgDatabaseProvider();
+                break;
+            case "MS":
+                provider = new MsDatabaseProvider();
+                break;
+            case "CH":
+                provider = new ChDatabaseProvider();
+                break;
+            default:
+                throw new IllegalArgumentException(Messages.CliArgs_db_type);
+        }
         return true;
     }
 

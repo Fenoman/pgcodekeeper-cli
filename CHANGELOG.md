@@ -11,13 +11,38 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+### Fixed
+
+## [14.0.0] - 2026-02-25
+
+### Added
+
+- Added comments processing for NOT NULL constraints in PostgreSQL.
+- Added argument `--cluster-name` for adding in migration script ON CLUSTER syntax to ClickHouse (experimentally).
+- Added search for .pgcodekeeperignore and .pgcodekeeperignoreschema files during project read. This avoids using the `--ignore-list (-I)` and `--ignore-schema` options with project files.
+
+### Changed
+
 - Improved readability of `--help` help: options are sorted alphabetically.
+- Improved parser rules for ClickHouse.
+- Improved function analyze in PostgreSQL.
 
 ### Fixed
 
+- Fixed default name generation for CONSTRAINT and SEQUENCE objects in PostgreSQL.
+- Fixed logic for normalizing views for ClickHouse.
+- Fixed parser errors for partitioned tables in MS SQL.
+- Fixed a false difference for the STATISTICS object in MS SQL.
+- Fixed reading of column length and precision for binary, datetime2, datetimeoffset, and time types in MS SQL database.
+- Fixed creating tables with NOT NULL constraints in PostgreSQL.
+
 ### Removed
 
-- Removed [--mode verify] and [--mode insert] modes.
+- Removed `--mode verify` and `--mode insert` modes.
+
+### Security
+
+- Updated the version of the clickhouse-jdbc driver due to CVE-2025-66566 and CVE-2025-12183. All connections to ClickHouse must now include the required `password` parameter.
 
 ## [13.1.0] - 2025-11-18
 
@@ -97,7 +122,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed a bug with the settings when saving objects to a project.
 - Fixed false differences when ignoring table column order.
 
-[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.1.0...HEAD
+[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.0.0...HEAD
+[14.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.1.0...14.0.0
 [13.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.0.0...v13.1.0
 [13.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v12.0.0...v13.0.0
 [12.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v11.2.0...v12.0.0
