@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- Fixed a bug when parsing the connection string for MS SQL.
+
 ## [14.0.0] - 2026-02-25
 
 ### Added
