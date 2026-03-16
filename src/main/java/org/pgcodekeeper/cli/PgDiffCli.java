@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-
 public final class PgDiffCli {
 
     private final CliArgs arguments;
@@ -70,7 +69,6 @@ public final class PgDiffCli {
                 arguments.getSourceLibXmls(), arguments.getSourceLibs(), arguments.getSourceLibsWithoutPriv());
         var newDbLoader = getDatabaseLoader(arguments.getNewSrc(),
                 arguments.getTargetLibXmls(), arguments.getTargetLibs(), arguments.getTargetLibsWithoutPriv());
-
         var script = PgCodeKeeperApi.diff(arguments.getProvider(), oldDbLoader, newDbLoader, diffSettings);
 
         assertErrorsEmpty();

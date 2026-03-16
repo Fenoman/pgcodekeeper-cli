@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Added the `--parallel-load` parameter. When specified, databases are loaded in parallel; by default, loading is performed sequentially.
+
 ### Changed
 
 - Updated the JUnit library version from 5.x to version 6.

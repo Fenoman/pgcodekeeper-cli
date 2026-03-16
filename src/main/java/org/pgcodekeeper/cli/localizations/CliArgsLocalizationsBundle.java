@@ -99,7 +99,8 @@ public final class CliArgsLocalizationsBundle extends ListResourceBundle {
                 {"graph-reverse", Messages.CliArgs_graph_reverse}, //$NON-NLS-1$
                 {"graph-name", Messages.CliArgs_graph_name}, //$NON-NLS-1$
                 {"graph-filter-object", Messages.CliArgs_graph_filter_object}, //$NON-NLS-1$
-                {"graph-invert-filter", Messages.CliArgs_graph_invert_filter} //$NON-NLS-1$
+                {"graph-invert-filter", Messages.CliArgs_graph_invert_filter}, //$NON-NLS-1$
+                {"parallel-load", Messages.CliArgs_use_parallel_load} //$NON-NLS-1$
         };
     }
 }
