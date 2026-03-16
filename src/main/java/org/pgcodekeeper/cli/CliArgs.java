@@ -83,6 +83,7 @@ public class CliArgs implements ISettings {
         this.graphDepth = DEFAULT_DEPTH;
         this.dbType = PG;
         this.mode = CliMode.DIFF;
+        this.parallelLoad = false;
     }
     // SONAR-ON
 
@@ -260,6 +261,9 @@ public class CliArgs implements ISettings {
 
     @Option(name = "--cluster-name", metaVar = CliArgsLocalizationsBundle.NAME, usage = "cluster-name")
     private String clusterName;
+
+    @Option(name = "--parallel-load", aliases = "-par", usage = "parallel-load")
+    private boolean parallelLoad;
 
     CliMode getMode() {
         return mode;
@@ -504,6 +508,11 @@ public class CliArgs implements ISettings {
     }
 
     @Override
+    public boolean isParallelLoad() {
+        return parallelLoad;
+    }
+
+    @Override
     public CliArgs copy() {
         var args = new CliArgs();
         args.addTransaction = addTransaction;
@@ -558,6 +567,7 @@ public class CliArgs implements ISettings {
         args.usingTypeCastOff = usingTypeCastOff;
         args.provider = provider;
         args.clusterName = clusterName;
+        args.parallelLoad = parallelLoad;
         return args;
     }
 
@@ -609,20 +619,13 @@ public class CliArgs implements ISettings {
             oldSrc = outputTarget;
         }
 
+        provider = switch (dbType) {
+            case "PG" -> new PgDatabaseProvider();
+            case "MS" -> new MsDatabaseProvider();
+            case "CH" -> new ChDatabaseProvider();
+            default -> throw new IllegalArgumentException(Messages.CliArgs_db_type);
+        };
 
-        switch (dbType) {
-            case "PG":
-                provider = new PgDatabaseProvider();
-                break;
-            case "MS":
-                provider = new MsDatabaseProvider();
-                break;
-            case "CH":
-                provider = new ChDatabaseProvider();
-                break;
-            default:
-                throw new IllegalArgumentException(Messages.CliArgs_db_type);
-        }
         return true;
     }
 
@@ -632,7 +635,7 @@ public class CliArgs implements ISettings {
         }
 
         if (CliMode.DIFF == mode) {
-            if (dbType.equals(PG) && addTransaction && concurrentlyMode) {
+            if (PG.equals(dbType) && addTransaction && concurrentlyMode) {
                 badArgs(Messages.CliArgs_error_concurrently_mode_wrong_option);
             }
             if (runOnTarget && !oldSrc.startsWith(URL_START_JDBC)) {

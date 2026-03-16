@@ -82,6 +82,7 @@ public class Messages {
     public static String CliArgs_tgt_lib_xml;
     public static String CliArgs_time_zone;
     public static String CliArgs_update_project;
+    public static String CliArgs_use_parallel_load;
     public static String CliArgs_using_off;
     public static String CliArgs_Version;
     public static String Main_cach_clear;
