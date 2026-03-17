@@ -100,7 +100,8 @@ public final class CliArgsLocalizationsBundle extends ListResourceBundle {
                 {"graph-name", Messages.CliArgs_graph_name}, //$NON-NLS-1$
                 {"graph-filter-object", Messages.CliArgs_graph_filter_object}, //$NON-NLS-1$
                 {"graph-invert-filter", Messages.CliArgs_graph_invert_filter}, //$NON-NLS-1$
-                {"parallel-load", Messages.CliArgs_use_parallel_load} //$NON-NLS-1$
+                {"parallel-load", Messages.CliArgs_use_parallel_load}, //$NON-NLS-1$
+                {"disable-auto-load", Messages.CliArgs_disable_auto_load} //$NON-NLS-1$
         };
     }
 }

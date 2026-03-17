@@ -29,6 +29,7 @@ public class Messages {
     public static String CliArgs_comments_to_end;
     public static String CliArgs_concurrently_mode;
     public static String CliArgs_db_type;
+    public static String CliArgs_disable_auto_load;
     public static String CliArgs_drop_before_create;
     public static String CliArgs_enable_function_bodies_dependencies;
     public static String CliArgs_error_argument_null;

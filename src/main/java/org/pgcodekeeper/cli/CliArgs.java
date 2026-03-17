@@ -84,6 +84,7 @@ public class CliArgs implements ISettings {
         this.dbType = PG;
         this.mode = CliMode.DIFF;
         this.parallelLoad = false;
+        this.disableAutoLoad = false;
     }
     // SONAR-ON
 
@@ -264,6 +265,9 @@ public class CliArgs implements ISettings {
 
     @Option(name = "--parallel-load", aliases = "-par", usage = "parallel-load")
     private boolean parallelLoad;
+
+    @Option(name = "--disable-auto_load", usage = "disable-auto-load")
+    private boolean disableAutoLoad;
 
     CliMode getMode() {
         return mode;
@@ -510,6 +514,11 @@ public class CliArgs implements ISettings {
     @Override
     public boolean isParallelLoad() {
         return parallelLoad;
+    }
+
+    @Override
+    public boolean isDisableAutoLoad() {
+        return disableAutoLoad;
     }
 
     @Override
