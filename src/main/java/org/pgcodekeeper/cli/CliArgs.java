@@ -266,7 +266,7 @@ public class CliArgs implements ISettings {
     @Option(name = "--parallel-load", aliases = "-par", usage = "parallel-load")
     private boolean parallelLoad;
 
-    @Option(name = "--disable-auto_load", usage = "disable-auto-load")
+    @Option(name = "--disable-auto-load", usage = "disable-auto-load")
     private boolean disableAutoLoad;
 
     CliMode getMode() {
