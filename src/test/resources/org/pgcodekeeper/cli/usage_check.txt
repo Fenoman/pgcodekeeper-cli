@@ -25,6 +25,8 @@ Usage
                                           = ON for MS SQL
  --db-type [PG | MS | CH]               : specify database type for work: PG,
                                           MS, CH (default: PG)
+ --disable-auto_load                    : disable automatic loading of project
+                                          auxiliary files
  --drop-before-create                   : print DROP before CREATE statement
  --enable-function-bodies-dependencies  : enable dependencies from bodies of
  (-f)                                     functions and procedures to other
