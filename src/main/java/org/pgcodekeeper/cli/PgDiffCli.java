@@ -84,11 +84,10 @@ public final class PgDiffCli {
                                      Collection<String> libsWithoutPriv) {
         IDatabaseProvider provider = arguments.getProvider();
 
-        final Path actualPath = Paths.get(srcPath);
         return switch (SourceFormat.parsePath(srcPath)) {
             case DB -> provider.getJdbcLoader(srcPath, diffSettings);
-            case DUMP -> provider.getDumpLoader(actualPath, diffSettings);
-            case PARSED -> provider.getProjectLoader(actualPath, diffSettings, libXmls, libs, libsWithoutPriv,
+            case DUMP -> provider.getDumpLoader(Paths.get(srcPath), diffSettings);
+            case PARSED -> provider.getProjectLoader(Paths.get(srcPath), diffSettings, libXmls, libs, libsWithoutPriv,
                     Utils.getMetaPath());
         };
     }
