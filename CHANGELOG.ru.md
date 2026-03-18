@@ -9,16 +9,29 @@
 
 ### Добавлено
 
+### Изменено
+
+### Исправлено
+
+## [14.1.0] - 2026-03-18
+
+### Добавлено
+
 - Добавлен параметр `--parallel-load`. При его указании загрузка баз данных выполняется параллельно, по умолчанию загрузка выполняется последовательно.
 - Добавлен параметр `--disable-auto_load`. При его указании отключается автоматическая загрузка вспомогательных файлов проекта (.pgcodekeeperignore, .pgcodekeeperignoreschema, .dependencies).
 
 ### Изменено
 
 - Обновлена версия библиотеки JUnit с 5.x до 6 версии.
+- Файл .dependencies считывается автоматически при загрузке проекта.
 
 ### Исправлено
 
-- Исправлена ​​ошибка при парсинге строки подключения для MS SQL.
+- Исправлена ошибка при парсинге строки подключения для MS SQL.
+- Исправлена ошибка генерации скрипта миграции c опцией Печатать DROP перед CREATE.
+- Исправлена ошибка в генерации скрипта миграции при переливке данных при пересоздании таблиц с полями типа serial в PostgreSQL.
+- Исправлена ошибка с поиском зависимостей для LATERAL функции в PostgreSQL.
+- Исправлена ошибка автоматического форматирования кода объектов.
 
 ## [14.0.0] - 2026-02-25
 
@@ -127,8 +140,9 @@
 - Исправлена ошибка с работой настроек при сохранении объектов в проект.
 - Исправлены ложные различия при игнорировании порядка колонок таблицы.
 
-[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.0.0...HEAD
-[14.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.1.0...14.0.0
+[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.0...HEAD
+[14.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.0.0...v14.1.0
+[14.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.1.0...v14.0.0
 [13.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.0.0...v13.1.0
 [13.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v12.0.0...v13.0.0
 [12.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v11.2.0...v12.0.0
