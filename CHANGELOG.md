@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Added the `--parallel-load` parameter. When specified, databases are loaded in parallel; by default, loading is performed sequentially.
-- Added the `--disable-auto_load` parameter. When specified, automatic loading of auxiliary project files is disabled (.pgcodekeeperignore, .pgcodekeeperignoreschema, .dependencies).
+- Added the `--disable-auto-load` parameter. When specified, automatic loading of auxiliary project files is disabled (.pgcodekeeperignore, .pgcodekeeperignoreschema, .dependencies).
 
 ### Changed
 
