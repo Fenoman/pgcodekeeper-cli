@@ -9,16 +9,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [14.1.0] - 2026-03-18
+
+### Added
+
 - Added the `--parallel-load` parameter. When specified, databases are loaded in parallel; by default, loading is performed sequentially.
 - Added the `--disable-auto_load` parameter. When specified, automatic loading of auxiliary project files is disabled (.pgcodekeeperignore, .pgcodekeeperignoreschema, .dependencies).
 
 ### Changed
 
 - Updated the JUnit library version from 5.x to version 6.
+- The .dependencies file is now automatically read when loading a project.
 
 ### Fixed
 
 - Fixed a bug when parsing the connection string for MS SQL.
+- Fixed a migration script generation error with the Print DROP before CREATE option.
+- Fixed a bug in the generation of the migration script when data migration when recreating tables with serial-type fields for PostgreSQL.
+- Fixed a bug with searching for dependencies for the LATERAL function in PostgreSQL.
+- Fixed a bug with automatic object code formatting.
 
 ## [14.0.0] - 2026-02-25
 
@@ -129,8 +142,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed a bug with the settings when saving objects to a project.
 - Fixed false differences when ignoring table column order.
 
-[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.0.0...HEAD
-[14.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.1.0...14.0.0
+[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.0...HEAD
+[14.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.0.0...v14.1.0
+[14.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.1.0...v14.0.0
 [13.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.0.0...v13.1.0
 [13.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v12.0.0...v13.0.0
 [12.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v11.2.0...v12.0.0
