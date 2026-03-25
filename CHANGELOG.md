@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [14.1.1] - 2026-03-25
+
+### Changed
+
+- Disabled loading of the OVERRIDES directory for libraries to restore the behavior typical before version 14.0.0.
+
+### Fixed
+
+- Fixed incorrect error on parallel database load failure.
+
 ## [14.1.0] - 2026-03-18
 
 ### Added
@@ -142,7 +152,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed a bug with the settings when saving objects to a project.
 - Fixed false differences when ignoring table column order.
 
-[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.0...HEAD
+[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.1...HEAD
+[14.1.1]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.0...v14.1.1
 [14.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.0.0...v14.1.0
 [14.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.1.0...v14.0.0
 [13.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.0.0...v13.1.0

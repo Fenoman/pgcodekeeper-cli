@@ -13,6 +13,16 @@
 
 ### Исправлено
 
+## [14.1.1] - 2026-03-25
+
+### Изменено
+
+- Отключена загрузка директории OVERRIDES у библиотек для восстановления поведения, характерного до версии 14.0.0.
+
+### Исправлено
+
+- Исправлена некорректная ошибка при сбое параллельной загрузки БД.
+
 ## [14.1.0] - 2026-03-18
 
 ### Добавлено
@@ -140,7 +150,8 @@
 - Исправлена ошибка с работой настроек при сохранении объектов в проект.
 - Исправлены ложные различия при игнорировании порядка колонок таблицы.
 
-[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.0...HEAD
+[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.1...HEAD
+[14.1.1]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.0...v14.1.1
 [14.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.0.0...v14.1.0
 [14.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.1.0...v14.0.0
 [13.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.0.0...v13.1.0
