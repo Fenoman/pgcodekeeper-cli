@@ -22,7 +22,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - Fixed incorrect error on parallel database load failure.
-- Fixed an error when calling the project load API method without specifying the library load directory.
 
 ## [14.1.0] - 2026-03-18
 
