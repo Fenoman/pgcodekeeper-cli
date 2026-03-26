@@ -20,7 +20,7 @@ jobs:
           java-version: '17'
 
       - name: build
-        run: mvn -B clean package -DskipTests
+        run: mvn -B -ntp clean package -DskipTests
 
       - name: set version
         run: echo "RELEASE_VERSION=$(echo ${GITHUB_REF#refs/*/} | cut -c 2-)" >> $GITHUB_ENV
