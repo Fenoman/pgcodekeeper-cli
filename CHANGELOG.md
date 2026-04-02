@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Added localization of missing lines.
+- The `--use-actual-syntax` parameter has been added. When specified, the syntax relevant to the current database version is used (there are currently no syntax changes, but these will be added later). By default, the syntax specific to the minimum supported version is used.
 
 ### Changed
 

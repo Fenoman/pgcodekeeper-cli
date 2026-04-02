@@ -149,6 +149,9 @@ Usage
                                           statement to the script
  --update-project                       : update an existing project in parse
                                           mode
+ --use-actual-syntax                    : use the current syntax to generate
+                                          the migration script (currently not
+                                          implemented)
  --using-off                            : do not print USING expression for
                                           ALTER COLUMN TYPE
  --version                              : show version
