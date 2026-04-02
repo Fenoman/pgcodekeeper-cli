@@ -83,6 +83,7 @@ public class Messages {
     public static String CliArgs_tgt_lib_xml;
     public static String CliArgs_time_zone;
     public static String CliArgs_update_project;
+    public static String CliArgs_use_actual_syntax;
     public static String CliArgs_use_parallel_load;
     public static String CliArgs_using_off;
     public static String CliArgs_Version;
@@ -98,14 +99,6 @@ public class Messages {
     public static String Main_log_succes_finish;
     public static String Main_show_stacktrace;
     public static String PgDiffCli_error_while_load_database;
-    public static String PgDiffCli_log_lib_have_dupl;
-    public static String PgDiffCli_log_load_new_db;
-    public static String PgDiffCli_log_load_new_db_lib;
-    public static String PgDiffCli_log_load_new_db_overrides;
-    public static String PgDiffCli_log_load_old_db;
-    public static String PgDiffCli_log_load_old_db_lib;
-    public static String PgDiffCli_log_load_old_db_overrides;
-    public static String PgDiffCli_log_start_db_analyze;
     public static String UsageHelp;
 
     static {

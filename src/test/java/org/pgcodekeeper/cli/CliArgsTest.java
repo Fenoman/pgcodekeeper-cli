@@ -58,8 +58,10 @@ class CliArgsTest {
                     + "--simplify-views cannot be used with --db-type MS option",
 
             "jdbc:postgresql:q jdbc:postgresql:q2 --cluster-name test;"
-                    + "--cluster-name cannot be used with --db-type PG option"
+                    + "--cluster-name cannot be used with --db-type PG option",
 
+            "--mode PARSE --use-actual-syntax;"
+                    + "--use-actual-syntax cannot be used with --mode PARSE option"
     })
     void badArgsTest(String arguments, String message) {
         String[] args = arguments.split(" ");

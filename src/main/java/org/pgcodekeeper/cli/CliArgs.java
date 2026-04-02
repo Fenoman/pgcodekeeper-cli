@@ -269,6 +269,9 @@ public class CliArgs implements ISettings {
     @Option(name = "--disable-auto-load", usage = "disable-auto-load")
     private boolean disableAutoLoad;
 
+    @Option(name = "--use-actual-syntax", usage = "use-actual-syntax")
+    private boolean isUseActualVersionSyntax;
+
     CliMode getMode() {
         return mode;
     }
@@ -512,6 +515,11 @@ public class CliArgs implements ISettings {
     }
 
     @Override
+    public boolean isUseActualVersionSyntax() {
+        return isUseActualVersionSyntax;
+    }
+
+    @Override
     public boolean isParallelLoad() {
         return parallelLoad;
     }
@@ -577,6 +585,7 @@ public class CliArgs implements ISettings {
         args.provider = provider;
         args.clusterName = clusterName;
         args.parallelLoad = parallelLoad;
+        args.isUseActualVersionSyntax = isUseActualVersionSyntax;
         return args;
     }
 
@@ -694,6 +703,7 @@ public class CliArgs implements ISettings {
         badArgWithCorrectModes(!graphNames.isEmpty(), "--graph-name", CliMode.GRAPH); //$NON-NLS-1$
         badArgWithCorrectModes(DEFAULT_DEPTH != graphDepth, "--graph-depth", CliMode.GRAPH); //$NON-NLS-1$
         badArgWithCorrectModes(!graphFilterTypes.isEmpty(), "--graph-filter-object", CliMode.GRAPH); //$NON-NLS-1$
+        badArgWithCorrectModes(isUseActualVersionSyntax, "--use-actual-syntax", CliMode.DIFF); //$NON-NLS-1$
     }
 
     private void checkDbTypesParam() throws CmdLineException {
