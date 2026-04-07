@@ -9,12 +9,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [14.2.0] - 2026-04-07
+
+### Added
+
 - Added localization of missing lines.
 - The `--use-actual-syntax` parameter has been added. When specified, the syntax relevant to the current database version is used (there are currently no syntax changes, but these will be added later). By default, the syntax specific to the minimum supported version is used.
 
 ### Changed
 
-### Fixed
+- Reduced the number of line breaks and indents added when formatting code.
 
 ## [14.1.1] - 2026-03-25
 
@@ -155,7 +163,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed a bug with the settings when saving objects to a project.
 - Fixed false differences when ignoring table column order.
 
-[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.1...HEAD
+[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.2.0...HEAD
+[14.2.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.1...v14.2.0
 [14.1.1]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.0...v14.1.1
 [14.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.0.0...v14.1.0
 [14.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v13.1.0...v14.0.0
