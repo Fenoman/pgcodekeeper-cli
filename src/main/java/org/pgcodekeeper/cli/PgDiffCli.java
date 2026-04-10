@@ -19,6 +19,7 @@ import org.pgcodekeeper.cli.localizations.Messages;
 import org.pgcodekeeper.core.api.PgCodeKeeperApi;
 import org.pgcodekeeper.core.database.api.IDatabaseProvider;
 import org.pgcodekeeper.core.database.api.loader.ILoader;
+import org.pgcodekeeper.core.dependencieslist.DependenciesReader;
 import org.pgcodekeeper.core.settings.DiffSettings;
 
 import java.io.IOException;
@@ -69,6 +70,10 @@ public final class PgDiffCli {
                 arguments.getSourceLibXmls(), arguments.getSourceLibs(), arguments.getSourceLibsWithoutPriv());
         var newDbLoader = getDatabaseLoader(arguments.getNewSrc(),
                 arguments.getTargetLibXmls(), arguments.getTargetLibs(), arguments.getTargetLibsWithoutPriv());
+
+        if (arguments.getAdditionalDependencies() != null) {
+            addAdditionalDependencies();
+        }
         var script = PgCodeKeeperApi.diff(arguments.getProvider(), oldDbLoader, newDbLoader, diffSettings);
 
         assertErrorsEmpty();
@@ -108,5 +113,10 @@ public final class PgDiffCli {
         if (arguments.getIgnoreSchemaList() != null) {
             diffSettings.addIgnoreSchemaList(Paths.get(arguments.getIgnoreSchemaList()));
         }
+    }
+
+    private void addAdditionalDependencies() {
+        var additionalDependencies = DependenciesReader.getDependencies(Paths.get(arguments.getAdditionalDependencies()));
+        diffSettings.addAdditionalDependencies(additionalDependencies);
     }
 }

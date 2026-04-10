@@ -60,6 +60,9 @@ class CliArgsTest {
             "jdbc:postgresql:q jdbc:postgresql:q2 --cluster-name test;"
                     + "--cluster-name cannot be used with --db-type PG option",
 
+            "--mode PARSE --additional-dependencies .pgcodekeeperdeps;"
+                    + "--additional-dependencies cannot be used with --mode PARSE option",
+
             "--mode PARSE --use-actual-syntax;"
                     + "--use-actual-syntax cannot be used with --mode PARSE option"
     })

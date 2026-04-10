@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Added the `--additional-dependencies` parameter, which allows you to specify the path to a file with additional dependencies.
+
 ### Changed
 
 ### Fixed

@@ -9,6 +9,8 @@ Usage
                                           mode only)
  --add-transaction (-X)                 : wrap generated script with
                                           transaction statements
+ --additional-dependencies <path>       : add a file with a list of additional
+                                          dependencies
  --allow-danger-ddl (-D)                : allows dangerous statements in
  <DANGER_STATEMENT>                       safe-mode scripts
  --allowed-object (-O) <OBJECT_TYPE>    : build the script using these object
@@ -117,33 +119,31 @@ Usage
                                           reading via JDBC (not recomended by
                                           PostgreSQL)
  --source (-s) <path or JDBC>           : source of schema changes
- --src-lib <path or JDBC>               : add library dependency to source
+ --src-lib <path or JDBC>               : add library to source
                                           specify multiple times to use several
                                           libraries
- --src-lib-no-priv <path or JDBC>       : add library dependency to source
-                                          without privileges
+ --src-lib-no-priv <path or JDBC>       : add library to source without
+                                          privileges
                                           specify multiple times to use several
                                           libraries
- --src-lib-xml <path>                   : add xml with library dependencies to
-                                          source
+ --src-lib-xml <path>                   : add xml with libraries to source
                                           specify multiple times to use several
-                                          library xml's
+                                          libraries xml's
  --stop-not-allowed                     : exit with an error when
                                           --allowed-object hides a dependency
                                           statement from the script
  --target (-t) <path or JDBC>           : destination for schema changes (diff
                                           mode only)
- --tgt-lib <path or JDBC>               : add library dependency to destination
+ --tgt-lib <path or JDBC>               : add library to destination
                                           specify multiple times to use several
                                           libraries
- --tgt-lib-no-priv <path or JDBC>       : add library dependency to destination
-                                          without privileges
+ --tgt-lib-no-priv <path or JDBC>       : add library to destination without
+                                          privileges
                                           specify multiple times to use several
                                           libraries
- --tgt-lib-xml <path>                   : add xml with library dependencies to
-                                          target
+ --tgt-lib-xml <path>                   : add xml with libraries to target
                                           specify multiple times to use several
-                                          library xml's
+                                          libraries xml's
  --time-zone (-Z) <timezone>            : use this timezone when working with
                                           database, also add SET TIMEZONE
                                           statement to the script
