@@ -90,6 +90,7 @@ public class Messages {
     public static String Main_cach_clear;
     public static String Main_danger_statements;
     public static String Main_log_apply_migration_script;
+    public static String CliArgs_deps_file;
     public static String Main_log_build_graph_deps;
     public static String Main_log_contains_dangerous_statements;
     public static String Main_log_create_script;
