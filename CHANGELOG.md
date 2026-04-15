@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- Added the `--additional-dependencies` parameter, which allows you to specify the path to a file with additional dependencies.
+- Added `--additional-dependencies` parameter, which allows you to specify the path to a file with additional dependencies.
+- Added `--simplify-not-null` parameter to simplify reading of NOT NULL constraints via JDBC for PostgreSQL 18+.
 
 ### Changed
 
@@ -20,7 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Added localization of missing lines.
-- The `--use-actual-syntax` parameter has been added. When specified, the syntax relevant to the current database version is used (there are currently no syntax changes, but these will be added later). By default, the syntax specific to the minimum supported version is used.
+- Added `--use-actual-syntax` parameter. When specified, the syntax relevant to the current database version is used (there are currently no syntax changes, but these will be added later). By default, the syntax specific to the minimum supported version is used.
 
 ### Changed
 

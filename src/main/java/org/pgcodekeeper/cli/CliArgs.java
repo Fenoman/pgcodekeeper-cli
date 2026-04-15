@@ -109,8 +109,7 @@ public class CliArgs implements ISettings {
     @Option(name = "--mode", usage = "mode")
     private CliMode mode;
 
-    @Option(name = "--source", depends = "-t", aliases = "-s", metaVar = CliArgsLocalizationsBundle.PATH_OR_JDBC,
-            usage = "source")
+    @Option(name = "--source", depends = "-t", aliases = "-s", metaVar = CliArgsLocalizationsBundle.PATH_OR_JDBC, usage = "source")
     @Argument(index = 0, metaVar = CliArgsLocalizationsBundle.SOURCE, usage = "source")
     private String newSrc;
 
@@ -121,8 +120,7 @@ public class CliArgs implements ISettings {
     @Option(name = "--output", aliases = "-o", metaVar = CliArgsLocalizationsBundle.PATH, usage = "output")
     private String outputTarget;
 
-    @Option(name = "--run-on-target", aliases = "-r", forbids = "-R",
-            usage = "run-on-target")
+    @Option(name = "--run-on-target", aliases = "-r", forbids = "-R", usage = "run-on-target")
     private boolean runOnTarget;
 
     @Option(name = "--run-on", aliases = "-R", metaVar = CliArgsLocalizationsBundle.JDBC, forbids = "-r", usage = "run-on")
@@ -269,11 +267,14 @@ public class CliArgs implements ISettings {
     @Option(name = "--disable-auto-load", usage = "disable-auto-load")
     private boolean disableAutoLoad;
 
-    @Option(name="--additional-dependencies", metaVar=CliArgsLocalizationsBundle.PATH, usage="additional-dependencies")
+    @Option(name = "--additional-dependencies", metaVar = CliArgsLocalizationsBundle.PATH, usage = "additional-dependencies")
     private String additionalDependencies;
 
     @Option(name = "--use-actual-syntax", usage = "use-actual-syntax")
     private boolean isUseActualVersionSyntax;
+
+    @Option(name = "--simplify-not-null", usage = "simplify-not-null")
+    private boolean simplifyNotNull;
 
     CliMode getMode() {
         return mode;
@@ -523,6 +524,11 @@ public class CliArgs implements ISettings {
     }
 
     @Override
+    public boolean isSimplifyNotNull() {
+        return simplifyNotNull;
+    }
+
+    @Override
     public boolean isParallelLoad() {
         return parallelLoad;
     }
@@ -607,7 +613,7 @@ public class CliArgs implements ISettings {
      *
      * @param args array of arguments
      * @return true if arguments were parsed and execution can continue,
-     * otherwise false
+     *         otherwise false
      */
     public boolean parse(String[] args) throws CmdLineException {
         if (args.length != 0) {
@@ -677,12 +683,9 @@ public class CliArgs implements ISettings {
 
     private void checkModeParams() throws CmdLineException {
         // argument can be used only with mode
-        badArgWithCorrectModes(newSrc != null, "--source (-s)", CliMode.DIFF, CliMode.PARSE, CliMode.GRAPH); //$NON-NLS-1$
         badArgWithCorrectModes(oldSrc != null, "--target (-t)", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(addTransaction, "--add-transaction (-X)", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(runOnDb != null, "--run-on (-R)", CliMode.DIFF); //$NON-NLS-1$
-        badArgWithCorrectModes(enableFunctionBodiesDependencies, "--enable-function-bodies-dependencies (-f)", //$NON-NLS-1$
-                CliMode.DIFF, CliMode.PARSE, CliMode.GRAPH);
         badArgWithCorrectModes(simplifyView, "--simplify-views", CliMode.DIFF, CliMode.PARSE); //$NON-NLS-1$
         badArgWithCorrectModes(timeZone != null, "--time-zone (-Z)", CliMode.DIFF, CliMode.PARSE); //$NON-NLS-1$
         badArgWithCorrectModes(!allowedTypes.isEmpty(), "--allowed-object (-O)", CliMode.DIFF); //$NON-NLS-1$
@@ -713,6 +716,7 @@ public class CliArgs implements ISettings {
         badArgWithCorrectModes(!graphFilterTypes.isEmpty(), "--graph-filter-object", CliMode.GRAPH); //$NON-NLS-1$
         badArgWithCorrectModes(additionalDependencies != null, "--additional-dependencies", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(isUseActualVersionSyntax, "--use-actual-syntax", CliMode.DIFF); //$NON-NLS-1$
+        badArgWithCorrectModes(simplifyNotNull, "--simplify-not-null", CliMode.DIFF, CliMode.PARSE); //$NON-NLS-1$
     }
 
     private void checkDbTypesParam() throws CmdLineException {
@@ -722,6 +726,7 @@ public class CliArgs implements ISettings {
         badArgWithWrongDbType(concurrentlyMode, "--concurrently-mode (-C)", CH); //$NON-NLS-1$
         badArgWithWrongDbType(commentsToEnd, "--comments-to-end", CH); //$NON-NLS-1$
         badArgWithWrongDbType(null != clusterName, "--cluster-name", PG, MS); //$NON-NLS-1$
+        badArgWithWrongDbType(simplifyNotNull, "--simplify-not-null", MS, CH); //$NON-NLS-1$
     }
 
     private void badArgWithCorrectModes(boolean condition, String param, CliMode... modes) throws CmdLineException {

@@ -71,6 +71,7 @@ public class Messages {
     public static String CliArgs_safe_mode;
     public static String CliArgs_selected_only;
     public static String CliArgs_show_error;
+    public static String CliArgs_simplify_not_null;
     public static String CliArgs_simplify_views;
     public static String CliArgs_source;
     public static String CliArgs_src_lib;

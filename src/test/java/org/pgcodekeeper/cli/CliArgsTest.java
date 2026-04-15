@@ -22,58 +22,64 @@ import org.kohsuke.args4j.CmdLineException;
 
 class CliArgsTest {
 
-    @ParameterizedTest(name = "{0}")
-    @CsvSource(delimiter = ';', value = {
-            "--mode PARSE;" +
-                    "Please specify SOURCE.",
+        @ParameterizedTest(name = "{0}")
+        @CsvSource(delimiter = ';', value = {
+                        "--mode PARSE;" +
+                                        "Please specify SOURCE.",
 
-            "--mode PARSE -o;" +
-                    "Option \"--output (-o)\" takes an operand",
+                        "--mode PARSE -o;" +
+                                        "Option \"--output (-o)\" takes an operand",
 
-            "--mode PARSE -s filename -t filename -o filename;" +
-                    "--target (-t) cannot be used with --mode PARSE option",
+                        "--mode PARSE -s filename -t filename -o filename;" +
+                                        "--target (-t) cannot be used with --mode PARSE option",
 
-            "--mode graph --graph-name public.test jdbc:postgresql:q jdbc:postgresql:q2;"
-                    + "--target (-t) cannot be used with --mode GRAPH option",
+                        "--mode graph --graph-name public.test jdbc:postgresql:q jdbc:postgresql:q2;"
+                                        + "--target (-t) cannot be used with --mode GRAPH option",
 
-            "--mode graph --graph-name test;"
-                    + "Please specify SOURCE.",
+                        "--mode graph --graph-name test;"
+                                        + "Please specify SOURCE.",
 
-            "--mode PARSE --graph-filter-object COLUMN jdbc:postgresql:q;"
-                    + "--graph-filter-object cannot be used with --mode PARSE option",
+                        "--mode PARSE --graph-filter-object COLUMN jdbc:postgresql:q;"
+                                        + "--graph-filter-object cannot be used with --mode PARSE option",
 
-            "jdbc:postgresql:q;"
-                    + "Please specify both SOURCE and DEST.",
+                        "jdbc:postgresql:q;"
+                                        + "Please specify both SOURCE and DEST.",
 
-            "jdbc:postgresql:q jdbc:postgresql:q2 -X -C;"
-                    + "--concurrently-mode (-C) cannot be used with the option(s) --add-transaction (-X) for PostgreSQL.",
+                        "jdbc:postgresql:q jdbc:postgresql:q2 -X -C;"
+                                        + "--concurrently-mode (-C) cannot be used with the option(s) --add-transaction (-X) for PostgreSQL.",
 
-            "-r filename filename;"
-                    + "Script can be applied only to database.",
+                        "-r filename filename;"
+                                        + "Script can be applied only to database.",
 
-            "-R filename filename filename;"
-                    + "Option --run-on (-R) must specify JDBC connection string.",
+                        "-R filename filename filename;"
+                                        + "Option --run-on (-R) must specify JDBC connection string.",
 
-            "filename filename --simplify-views --db-type MS;"
-                    + "--simplify-views cannot be used with --db-type MS option",
+                        "filename filename --simplify-views --db-type MS;"
+                                        + "--simplify-views cannot be used with --db-type MS option",
 
-            "jdbc:postgresql:q jdbc:postgresql:q2 --cluster-name test;"
-                    + "--cluster-name cannot be used with --db-type PG option",
+                        "jdbc:postgresql:q jdbc:postgresql:q2 --cluster-name test;"
+                                        + "--cluster-name cannot be used with --db-type PG option",
 
-            "--mode PARSE --additional-dependencies .pgcodekeeperdeps;"
-                    + "--additional-dependencies cannot be used with --mode PARSE option",
+                        "--mode PARSE --additional-dependencies .pgcodekeeperdeps;"
+                                        + "--additional-dependencies cannot be used with --mode PARSE option",
 
-            "--mode PARSE --use-actual-syntax;"
-                    + "--use-actual-syntax cannot be used with --mode PARSE option"
-    })
-    void badArgsTest(String arguments, String message) {
-        String[] args = arguments.split(" ");
-        CliArgs cliArgs = new CliArgs();
-        try {
-            cliArgs.parse(args);
-            Assertions.fail();
-        } catch (CmdLineException e) {
-            Assertions.assertEquals(message, e.getMessage());
+                        "--mode PARSE --use-actual-syntax;"
+                                        + "--use-actual-syntax cannot be used with --mode PARSE option",
+
+                        "--mode GRAPH --simplify-not-null;"
+                                        + "--simplify-not-null cannot be used with --mode GRAPH option",
+
+                        "--db-type MS --simplify-not-null;"
+                                        + "--simplify-not-null cannot be used with --db-type MS option"
+        })
+        void badArgsTest(String arguments, String message) {
+                String[] args = arguments.split(" ");
+                CliArgs cliArgs = new CliArgs();
+                try {
+                        cliArgs.parse(args);
+                        Assertions.fail();
+                } catch (CmdLineException e) {
+                        Assertions.assertEquals(message, e.getMessage());
+                }
         }
-    }
 }
