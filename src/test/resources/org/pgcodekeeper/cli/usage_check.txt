@@ -116,7 +116,7 @@ Usage
                                           in CLI, selected means included by
                                           --allowed-object and ignore lists
  --simplify-not-null                    : simplified reading of NOT NULL
-                                          constraints via JDBC (only for 
+                                          constraints via JDBC (only for
                                           PostgreSQL 18+)
  --simplify-views                       : simple formatting for VIEWs when
                                           reading via JDBC (not recomended by

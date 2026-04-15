@@ -9,12 +9,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- Added `--additional-dependencies` parameter, which allows you to specify the path to a file with additional dependencies.
-- Added `--simplify-not-null` parameter to simplify reading of NOT NULL constraints via JDBC for PostgreSQL 18+.
-
 ### Changed
 
 ### Fixed
+
+## [14.3.0] - 2026-04-15
+
+### Added
+
+- Added `--additional-dependencies` parameter, which allows you to specify the path to a file with additional dependencies.
+- Added `--simplify-not-null` parameter to simplify reading of NOT NULL constraints via JDBC for PostgreSQL 18+.
 
 ## [14.2.0] - 2026-04-07
 
@@ -166,7 +170,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed a bug with the settings when saving objects to a project.
 - Fixed false differences when ignoring table column order.
 
-[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.2.0...HEAD
+[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.3.0...HEAD
+[14.3.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.2.0...14.3.0
 [14.2.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.1...v14.2.0
 [14.1.1]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.0...v14.1.1
 [14.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.0.0...v14.1.0
