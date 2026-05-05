@@ -13,6 +13,13 @@
 
 ### Исправлено
 
+## [14.4.0] - 2026-05-05
+
+### Изменено
+
+- Улучшена генерация кода при изменении индекса у партиционных таблиц PostgreSQL.
+- Улучшен текст сообщения об ошибке при подключении к БД.
+
 ## [14.3.0] - 2026-04-15
 
 ### Добавлено
@@ -168,8 +175,9 @@
 - Исправлена ошибка с работой настроек при сохранении объектов в проект.
 - Исправлены ложные различия при игнорировании порядка колонок таблицы.
 
-[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.3.0...HEAD
-[14.3.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.2.0...14.3.0
+[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.4.0...HEAD
+[14.4.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.3.0...v14.4.0
+[14.3.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.2.0...v14.3.0
 [14.2.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.1...v14.2.0
 [14.1.1]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.0...v14.1.1
 [14.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.0.0...v14.1.0

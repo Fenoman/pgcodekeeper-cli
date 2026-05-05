@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [14.4.0] - 2026-05-05
+
+### Changed
+
+- Improved code generation when changing an index on partitioned tables PostgreSQL.
+- Improved the error message text when connecting to the database.
+
 ## [14.3.0] - 2026-04-15
 
 ### Added
@@ -170,8 +177,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed a bug with the settings when saving objects to a project.
 - Fixed false differences when ignoring table column order.
 
-[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.3.0...HEAD
-[14.3.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.2.0...14.3.0
+[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.4.0...HEAD
+[14.4.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.3.0...v14.4.0
+[14.3.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.2.0...v14.3.0
 [14.2.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.1...v14.2.0
 [14.1.1]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.1.0...v14.1.1
 [14.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.0.0...v14.1.0
