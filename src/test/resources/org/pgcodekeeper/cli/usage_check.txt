@@ -135,6 +135,9 @@ Usage
  --stop-not-allowed                     : exit with an error when
                                           --allowed-object hides a dependency
                                           statement from the script
+ --structure-file <path>                : path to a properties file with
+                                          directory layout overrides for parse
+                                          mode
  --target (-t) <path or JDBC>           : destination for schema changes (diff
                                           mode only)
  --tgt-lib <path or JDBC>               : add library to destination

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Added `--structure-file` parameter for parse mode, which allows specifying the path to a properties file with directory layout overrides for project export.
+
 ### Changed
 
 ### Fixed

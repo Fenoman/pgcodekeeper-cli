@@ -58,8 +58,10 @@ public final class PgDiffCli {
         var newDbLoader = getDatabaseLoader(arguments.getNewSrc(),
                 arguments.getTargetLibXmls(), arguments.getTargetLibs(), arguments.getTargetLibsWithoutPriv());
 
+        String structureFile = arguments.getStructureFile();
         PgCodeKeeperApi.exportToProject(arguments.getProvider(), null, newDbLoader,
-                Path.of(arguments.getOutputTarget()), diffSettings);
+                Path.of(arguments.getOutputTarget()), false,
+                structureFile == null ? null : Paths.get(structureFile), diffSettings);
 
         assertErrorsEmpty();
     }
