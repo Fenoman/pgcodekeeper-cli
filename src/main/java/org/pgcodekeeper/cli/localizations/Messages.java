@@ -37,6 +37,7 @@ public class Messages {
     public static String CliArgs_error_run_on_non_jdbc;
     public static String CliArgs_error_source_dest;
     public static String CliArgs_error_source_null;
+    public static String CliArgs_error_structure_file_with_update;
     public static String CliArgs_error_target_non_db;
     public static String CliArgs_error_wrong_db_type;
     public static String CliArgs_error_wrong_mode;
@@ -78,6 +79,7 @@ public class Messages {
     public static String CliArgs_src_lib_no_priv;
     public static String CliArgs_src_lib_xml;
     public static String CliArgs_stop_not_allowed;
+    public static String CliArgs_structure_file;
     public static String CliArgs_target;
     public static String CliArgs_tgt_lib;
     public static String CliArgs_tgt_lib_no_priv;

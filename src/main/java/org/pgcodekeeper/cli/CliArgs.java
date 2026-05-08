@@ -243,6 +243,9 @@ public class CliArgs implements ISettings {
     @Option(name = "--update-project", usage = "update-project")
     private boolean projUpdate;
 
+    @Option(name = "--structure-file", metaVar = CliArgsLocalizationsBundle.PATH, usage = "structure-file")
+    private String structureFile;
+
     @Option(name = "--graph-depth", metaVar = CliArgsLocalizationsBundle.N, usage = "graph-depth")
     private int graphDepth;
 
@@ -485,6 +488,10 @@ public class CliArgs implements ISettings {
         return projUpdate;
     }
 
+    public String getStructureFile() {
+        return structureFile;
+    }
+
     public Collection<String> getGraphNames() {
         return Collections.unmodifiableCollection(graphNames);
     }
@@ -581,6 +588,7 @@ public class CliArgs implements ISettings {
         args.postFilePath = postFilePath;
         args.preFilePath = preFilePath;
         args.projUpdate = projUpdate;
+        args.structureFile = structureFile;
         args.runOnDb = runOnDb;
         args.runOnTarget = runOnTarget;
         args.safeMode = safeMode;
@@ -676,8 +684,13 @@ public class CliArgs implements ISettings {
             if (runOnDb != null && !runOnDb.startsWith(URL_START_JDBC)) {
                 badArgs(Messages.CliArgs_error_run_on_non_jdbc);
             }
-        } else if (CliMode.PARSE == mode && outputTarget == null) {
-            badArgs(Messages.CliArgs_error_argument_null.formatted("\"-o (--output)\"")); //$NON-NLS-1$
+        } else if (CliMode.PARSE == mode) {
+            if (outputTarget == null) {
+                badArgs(Messages.CliArgs_error_argument_null.formatted("\"-o (--output)\"")); //$NON-NLS-1$
+            }
+            if (projUpdate && structureFile != null) {
+                badArgs(Messages.CliArgs_error_structure_file_with_update);
+            }
         }
     }
 
@@ -711,6 +724,7 @@ public class CliArgs implements ISettings {
         badArgWithCorrectModes(!sourceLibs.isEmpty(), "--tgt-lib", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(!sourceLibsWithoutPriv.isEmpty(), "--tgt-lib-no-priv", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(projUpdate, "--update-project", CliMode.PARSE); //$NON-NLS-1$
+        badArgWithCorrectModes(structureFile != null, "--structure-file", CliMode.PARSE); //$NON-NLS-1$
         badArgWithCorrectModes(!graphNames.isEmpty(), "--graph-name", CliMode.GRAPH); //$NON-NLS-1$
         badArgWithCorrectModes(DEFAULT_DEPTH != graphDepth, "--graph-depth", CliMode.GRAPH); //$NON-NLS-1$
         badArgWithCorrectModes(!graphFilterTypes.isEmpty(), "--graph-filter-object", CliMode.GRAPH); //$NON-NLS-1$

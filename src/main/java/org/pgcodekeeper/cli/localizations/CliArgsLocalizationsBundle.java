@@ -95,6 +95,7 @@ public final class CliArgsLocalizationsBundle extends ListResourceBundle {
                 { "ignore-concurrent-modification", Messages.CliArgs_ignore_concurrent_modification }, //$NON-NLS-1$
                 { "db-type", Messages.CliArgs_db_type }, //$NON-NLS-1$
                 { "update-project", Messages.CliArgs_update_project }, //$NON-NLS-1$
+                { "structure-file", Messages.CliArgs_structure_file }, //$NON-NLS-1$
                 { "graph-depth", Messages.CliArgs_graph_depth }, //$NON-NLS-1$
                 { "graph-reverse", Messages.CliArgs_graph_reverse }, //$NON-NLS-1$
                 { "graph-name", Messages.CliArgs_graph_name }, //$NON-NLS-1$
