@@ -33,7 +33,7 @@ jobs:
 
       - name: create GitHub release
         id: create_release
-        uses: comnoco/create-release-action@v2.0.5
+        uses: comnoco/create-release-action@7dea6dc82ac9d97ced7a764aa82811451bba80e0 # v2.0.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -43,7 +43,7 @@ jobs:
           prerelease: false
 
       - name: upload release zip cli build
-        uses: sekwah41/upload-release-assets@main
+        uses: sekwah41/upload-release-assets@c78270f81ce7c57d4a677986bcd31a41fa65c5fa
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -53,7 +53,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: upload release jar cli build
-        uses: sekwah41/upload-release-assets@main
+        uses: sekwah41/upload-release-assets@c78270f81ce7c57d4a677986bcd31a41fa65c5fa
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
