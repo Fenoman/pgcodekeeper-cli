@@ -9,13 +9,24 @@
 
 ### Добавлено
 
-- Добавлен параметр `--structure-file` для режима parse, позволяющий указать путь к properties-файлу с альтернативной структурой директорий объектов при экспорте проекта.
-
 ### Изменено
 
 ### Исправлено
 
-## [14.4.1] - 2026-05-06
+## [14.5.0] - 2026-06-02
+
+### Добавлено
+
+- Добавлена поддержка нового синтаксиса для таблиц в Greenplum 7.
+- Добавлен параметр `--structure-file` для режима parse, позволяющий указать путь к properties-файлу с альтернативной структурой директорий объектов при экспорте проекта.
+
+### Исправлено
+
+- Исправлены ошибки парсинга в PostgreSQL.
+
+### Безопасность
+
+- Повышена версия JDBC драйвера для PostgreSQL из-за CVE-2026-42198.
 
 ### Исправлено
 
@@ -183,7 +194,8 @@
 - Исправлена ошибка с работой настроек при сохранении объектов в проект.
 - Исправлены ложные различия при игнорировании порядка колонок таблицы.
 
-[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.4.1...HEAD
+[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.5.0...HEAD
+[14.5.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.4.1...v14.5.0
 [14.4.1]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.4.0...v14.4.1
 [14.4.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.3.0...v14.4.0
 [14.3.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.2.0...v14.3.0
