@@ -9,11 +9,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [14.5.0] - 2026-06-02
+
+### Added
+
+- Added support for new syntax for tables for Greenplum 7.
 - Added `--structure-file` parameter for parse mode, which allows specifying the path to a properties file with directory layout overrides for project export.
 
 ### Changed
 
-### Fixed
+- Fixed parser errors for PostgreSQL.
+
+### Security
+
+- Increased version of JDBC driver for PostgreSQL due to CVE-2026-42198.
 
 ## [14.4.1] - 2026-05-06
 
@@ -185,7 +198,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed a bug with the settings when saving objects to a project.
 - Fixed false differences when ignoring table column order.
 
-[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.4.1...HEAD
+[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.5.0...HEAD
+[14.5.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.4.1...v14.5.0
 [14.4.1]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.4.0...v14.4.1
 [14.4.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.3.0...v14.4.0
 [14.3.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.2.0...v14.3.0
