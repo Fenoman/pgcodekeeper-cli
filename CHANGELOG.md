@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+### Security
+
+- Increased version of logback due to CVE-2026-1225.
+
 ## [14.5.0] - 2026-06-02
 
 ### Added
