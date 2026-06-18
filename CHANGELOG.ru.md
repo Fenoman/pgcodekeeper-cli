@@ -13,6 +13,19 @@
 
 ### Исправлено
 
+## [14.6.0] - 2026-06-18
+
+### Изменено
+
+- Улучшена работа с временными файлами.
+
+### Исправлено
+
+- Исправлено полное обновление проекта: очищаются только папки самого проекта.
+- Исправлено добавление объектов библиотек в проект при экспорте.
+- Исправлена генерация кода индекса при его изменении в режиме CONCURRENTLY.
+- Исправлена генерация скрипта миграции при изменении генерируемой колонки в PostgreSQL.
+
 ### Безопасность
 
 - Повышена версия logback из-за CVE-2026-1225.
@@ -198,7 +211,8 @@
 - Исправлена ошибка с работой настроек при сохранении объектов в проект.
 - Исправлены ложные различия при игнорировании порядка колонок таблицы.
 
-[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.5.0...HEAD
+[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.6.0...HEAD
+[14.6.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.5.0...v14.6.0
 [14.5.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.4.1...v14.5.0
 [14.4.1]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.4.0...v14.4.1
 [14.4.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.3.0...v14.4.0
