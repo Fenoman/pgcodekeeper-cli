@@ -13,6 +13,16 @@
 
 ### Исправлено
 
+## [14.7.0] - 2026-06-30
+
+### Изменено
+
+- Улучшены правила парсера для работы с форматами JSON в ClikHouse.
+
+### Исправлено
+
+- Исправлены ошибки при работе с файлами .pgcodekeeperdependencies.
+
 ## [14.6.0] - 2026-06-18
 
 ### Изменено
@@ -211,7 +221,8 @@
 - Исправлена ошибка с работой настроек при сохранении объектов в проект.
 - Исправлены ложные различия при игнорировании порядка колонок таблицы.
 
-[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.6.0...HEAD
+[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.7.0...HEAD
+[14.7.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.6.0...v14.7.0
 [14.6.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.5.0...v14.6.0
 [14.5.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.4.1...v14.5.0
 [14.4.1]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.4.0...v14.4.1
