@@ -31,33 +31,13 @@ jobs:
       - name: set cli build name for jar
         run: echo "CLI_BUILD_JAR=pgcodekeeper-cli-${{ env.RELEASE_VERSION }}.jar" >> $GITHUB_ENV
 
-      - name: create GitHub release
-        id: create_release
-        uses: comnoco/create-release-action@7dea6dc82ac9d97ced7a764aa82811451bba80e0 # v2.0.5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: upload release assets
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b #v3.0.1
         with:
           tag_name: v${{ env.RELEASE_VERSION }}
-          release_name: pgCodeKeeper ${{ env.RELEASE_VERSION }}
+          name: pgCodeKeeper ${{ env.RELEASE_VERSION }}
           draft: false
           prerelease: false
-
-      - name: upload release zip cli build
-        uses: sekwah41/upload-release-assets@c78270f81ce7c57d4a677986bcd31a41fa65c5fa
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/target/${{ env.CLI_BUILD_ZIP }}
-          asset_name: ${{ env.CLI_BUILD_ZIP }}
-          asset_content_type: application/zip
-
-      - name: upload release jar cli build
-        uses: sekwah41/upload-release-assets@c78270f81ce7c57d4a677986bcd31a41fa65c5fa
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/target/${{ env.CLI_BUILD_JAR }}
-          asset_name: ${{ env.CLI_BUILD_JAR }}
-          asset_content_type: application/java-archive
+          files: |
+            ${{ github.workspace }}/target/${{ env.CLI_BUILD_ZIP }}
+            ${{ github.workspace }}/target/${{ env.CLI_BUILD_JAR }}
