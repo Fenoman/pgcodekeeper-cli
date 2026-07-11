@@ -29,6 +29,7 @@ import org.pgcodekeeper.core.database.base.formatter.FormatConfiguration;
 import org.pgcodekeeper.core.database.ch.ChDatabaseProvider;
 import org.pgcodekeeper.core.database.ms.MsDatabaseProvider;
 import org.pgcodekeeper.core.database.pg.PgDatabaseProvider;
+import org.pgcodekeeper.core.settings.AbstractSettings;
 import org.pgcodekeeper.core.settings.ISettings;
 
 import java.io.ByteArrayOutputStream;
@@ -45,7 +46,7 @@ import java.util.List;
  * Override getters so that clients will access either CLI or parent fields
  * depending on the instance.
  */
-public class CliArgs implements ISettings {
+public class CliArgs extends AbstractSettings {
 
     enum CliMode {
         DIFF,
@@ -211,7 +212,7 @@ public class CliArgs implements ISettings {
     private List<String> ignoreLists;
 
     @Option(name = "--ignore-schema", metaVar = CliArgsLocalizationsBundle.PATH, usage = "ignore-schema")
-    private String ignoreSchemaList;
+    private String ignoreSchemaListPath;
 
     @Option(name = "--src-lib-xml", metaVar = CliArgsLocalizationsBundle.PATH, usage = "src-lib-xml")
     private List<String> targetLibXmls;
@@ -271,7 +272,7 @@ public class CliArgs implements ISettings {
     private boolean disableAutoLoad;
 
     @Option(name = "--additional-dependencies", metaVar = CliArgsLocalizationsBundle.PATH, usage = "additional-dependencies")
-    private String additionalDependencies;
+    private String additionalDepsPath;
 
     @Option(name = "--use-actual-syntax", usage = "use-actual-syntax")
     private boolean isUseActualVersionSyntax;
@@ -329,8 +330,8 @@ public class CliArgs implements ISettings {
         return Collections.unmodifiableCollection(ignoreLists);
     }
 
-    public String getIgnoreSchemaList() {
-        return ignoreSchemaList;
+    public String getIgnoreSchemaListPath() {
+        return ignoreSchemaListPath;
     }
 
     public Collection<String> getSourceLibXmls() {
@@ -545,12 +546,12 @@ public class CliArgs implements ISettings {
         return disableAutoLoad;
     }
 
-    public String getAdditionalDependencies() {
-        return additionalDependencies;
+    public String getAdditionalDepsPath() {
+        return additionalDepsPath;
     }
 
     @Override
-    public CliArgs copy() {
+    public CliArgs shallowCopy() {
         var args = new CliArgs();
         args.addTransaction = addTransaction;
         args.allowedDangers = allowedDangers;
@@ -576,7 +577,7 @@ public class CliArgs implements ISettings {
         args.ignoreErrors = ignoreErrors;
         args.ignoreLists = ignoreLists;
         args.ignorePrivileges = ignorePrivileges;
-        args.ignoreSchemaList = ignoreSchemaList;
+        args.ignoreSchemaListPath = ignoreSchemaListPath;
         args.inCharsetName = inCharsetName;
         args.keepNewlines = keepNewlines;
         args.libSafeMode = libSafeMode;
@@ -606,7 +607,9 @@ public class CliArgs implements ISettings {
         args.provider = provider;
         args.clusterName = clusterName;
         args.parallelLoad = parallelLoad;
-        args.additionalDependencies = additionalDependencies;
+        args.disableAutoLoad = disableAutoLoad;
+        args.simplifyNotNull = simplifyNotNull;
+        args.additionalDepsPath = additionalDepsPath;
         args.isUseActualVersionSyntax = isUseActualVersionSyntax;
         return args;
     }
@@ -621,7 +624,7 @@ public class CliArgs implements ISettings {
      *
      * @param args array of arguments
      * @return true if arguments were parsed and execution can continue,
-     *         otherwise false
+     * otherwise false
      */
     public boolean parse(String[] args) throws CmdLineException {
         if (args.length != 0) {
@@ -728,7 +731,7 @@ public class CliArgs implements ISettings {
         badArgWithCorrectModes(!graphNames.isEmpty(), "--graph-name", CliMode.GRAPH); //$NON-NLS-1$
         badArgWithCorrectModes(DEFAULT_DEPTH != graphDepth, "--graph-depth", CliMode.GRAPH); //$NON-NLS-1$
         badArgWithCorrectModes(!graphFilterTypes.isEmpty(), "--graph-filter-object", CliMode.GRAPH); //$NON-NLS-1$
-        badArgWithCorrectModes(additionalDependencies != null, "--additional-dependencies", CliMode.DIFF); //$NON-NLS-1$
+        badArgWithCorrectModes(additionalDepsPath != null, "--additional-dependencies", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(isUseActualVersionSyntax, "--use-actual-syntax", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(simplifyNotNull, "--simplify-not-null", CliMode.DIFF, CliMode.PARSE); //$NON-NLS-1$
     }

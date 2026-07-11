@@ -20,7 +20,6 @@ import org.pgcodekeeper.core.api.PgCodeKeeperApi;
 import org.pgcodekeeper.core.database.api.IDatabaseProvider;
 import org.pgcodekeeper.core.database.api.loader.ILoader;
 import org.pgcodekeeper.core.dependencieslist.DependenciesReader;
-import org.pgcodekeeper.core.settings.DiffSettings;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -32,11 +31,9 @@ import java.util.List;
 public final class PgDiffCli {
 
     private final CliArgs arguments;
-    private final DiffSettings diffSettings;
 
-    public PgDiffCli(CliArgs arguments, DiffSettings diffSettings) {
+    public PgDiffCli(CliArgs arguments) {
         this.arguments = arguments;
-        this.diffSettings = diffSettings;
     }
 
     public void updateProject()
@@ -48,7 +45,7 @@ public final class PgDiffCli {
                 arguments.getTargetLibXmls(), arguments.getTargetLibs(), arguments.getTargetLibsWithoutPriv());
 
         PgCodeKeeperApi.exportToProject(arguments.getProvider(), oldDbLoader, newDbLoader,
-                Path.of(arguments.getOutputTarget()), diffSettings);
+                Path.of(arguments.getOutputTarget()), arguments);
 
         assertErrorsEmpty();
     }
@@ -61,7 +58,7 @@ public final class PgDiffCli {
         String structureFile = arguments.getStructureFile();
         PgCodeKeeperApi.exportToProject(arguments.getProvider(), null, newDbLoader,
                 Path.of(arguments.getOutputTarget()), false,
-                structureFile == null ? null : Paths.get(structureFile), diffSettings);
+                structureFile == null ? null : Paths.get(structureFile), arguments);
 
         assertErrorsEmpty();
     }
@@ -73,10 +70,10 @@ public final class PgDiffCli {
         var newDbLoader = getDatabaseLoader(arguments.getNewSrc(),
                 arguments.getTargetLibXmls(), arguments.getTargetLibs(), arguments.getTargetLibsWithoutPriv());
 
-        if (arguments.getAdditionalDependencies() != null) {
+        if (arguments.getAdditionalDepsPath() != null) {
             addAdditionalDependencies();
         }
-        var script = PgCodeKeeperApi.diff(arguments.getProvider(), oldDbLoader, newDbLoader, diffSettings);
+        var script = PgCodeKeeperApi.diff(arguments.getProvider(), oldDbLoader, newDbLoader, arguments);
 
         assertErrorsEmpty();
 
@@ -84,7 +81,7 @@ public final class PgDiffCli {
     }
 
     public List<Object> getErrors() {
-        return Collections.unmodifiableList(diffSettings.getErrors());
+        return Collections.unmodifiableList(arguments.getErrors());
     }
 
     public ILoader getDatabaseLoader(String srcPath, Collection<String> libXmls, Collection<String> libs,
@@ -92,9 +89,9 @@ public final class PgDiffCli {
         IDatabaseProvider provider = arguments.getProvider();
 
         return switch (SourceFormat.parsePath(srcPath)) {
-            case DB -> provider.getJdbcLoader(srcPath, diffSettings);
-            case DUMP -> provider.getDumpLoader(Paths.get(srcPath), diffSettings);
-            case PARSED -> provider.getProjectLoader(Paths.get(srcPath), diffSettings, libXmls, libs, libsWithoutPriv,
+            case DB -> provider.getJdbcLoader(srcPath, arguments);
+            case DUMP -> provider.getDumpLoader(Paths.get(srcPath), arguments);
+            case PARSED -> provider.getProjectLoader(Paths.get(srcPath), arguments, libXmls, libs, libsWithoutPriv,
                     Utils.getMetaPath());
         };
     }
@@ -108,17 +105,17 @@ public final class PgDiffCli {
     private void addIgnoreLists() throws IOException {
         for (String ignorePath : arguments.getIgnoreLists()) {
             if (ignorePath != null) {
-                diffSettings.addIgnoreList(Paths.get(ignorePath));
+                arguments.addIgnoreList(Paths.get(ignorePath));
             }
         }
 
-        if (arguments.getIgnoreSchemaList() != null) {
-            diffSettings.addIgnoreSchemaList(Paths.get(arguments.getIgnoreSchemaList()));
+        if (arguments.getIgnoreSchemaListPath() != null) {
+            arguments.addIgnoreSchemaList(Paths.get(arguments.getIgnoreSchemaListPath()));
         }
     }
 
     private void addAdditionalDependencies() {
-        var additionalDependencies = DependenciesReader.getDependencies(Paths.get(arguments.getAdditionalDependencies()));
-        diffSettings.addAdditionalDependencies(additionalDependencies);
+        var additionalDependencies = DependenciesReader.getDependencies(Paths.get(arguments.getAdditionalDepsPath()));
+        arguments.addAdditionalDependencies(additionalDependencies);
     }
 }
