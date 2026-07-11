@@ -24,7 +24,6 @@ import org.pgcodekeeper.cli.localizations.Messages;
 import org.pgcodekeeper.core.DangerStatement;
 import org.pgcodekeeper.core.api.PgCodeKeeperApi;
 import org.pgcodekeeper.core.database.api.loader.ILoader;
-import org.pgcodekeeper.core.settings.DiffSettings;
 import org.pgcodekeeper.core.utils.FileUtils;
 import org.pgcodekeeper.core.utils.UnixPrintWriter;
 import org.slf4j.Logger;
@@ -102,8 +101,7 @@ public final class Application {
     private static boolean diff(CliArgs arguments)
             throws InterruptedException, IOException, SQLException {
         try (PrintWriter encodedWriter = getDiffWriter(arguments)) {
-            var diffSettings = new DiffSettings(arguments);
-            var diff = new PgDiffCli(arguments, diffSettings);
+            var diff = new PgDiffCli(arguments);
             String text;
             try {
                 LOG.info(Messages.Main_log_create_script);
@@ -115,7 +113,7 @@ public final class Application {
 
             if (arguments.isSafeMode()) {
                 Set<DangerStatement> dangerTypes = PgCodeKeeperApi.checkDangerousStatements(
-                        arguments.getProvider(), "CLI", text, diffSettings, arguments.getAllowedDangers());
+                        arguments.getProvider(), "CLI", text, arguments, arguments.getAllowedDangers());
 
                 if (!dangerTypes.isEmpty()) {
                     String dangerStmt = dangerTypes.stream().map(DangerStatement::name)
@@ -142,7 +140,7 @@ public final class Application {
                 }
 
                 LOG.info(Messages.Main_log_apply_migration_script);
-                PgCodeKeeperApi.runSQL(arguments.getProvider(), "CLI", text, url, diffSettings);
+                PgCodeKeeperApi.runSQL(arguments.getProvider(), "CLI", text, url, arguments);
             } else if (encodedWriter == null) {
                 writeToConsole(text);
             }
@@ -159,7 +157,7 @@ public final class Application {
     }
 
     private static boolean parse(CliArgs arguments) throws IOException, InterruptedException {
-        PgDiffCli diff = new PgDiffCli(arguments, new DiffSettings(arguments));
+        PgDiffCli diff = new PgDiffCli(arguments);
         try {
             if (arguments.isProjUpdate()) {
                 LOG.info(Messages.Main_log_start_update_proj);
@@ -178,7 +176,7 @@ public final class Application {
     }
 
     private static boolean graph(CliArgs arguments) throws IOException, InterruptedException {
-        var diff = new PgDiffCli(arguments, new DiffSettings(arguments));
+        var diff = new PgDiffCli(arguments);
         ILoader dbLoader;
         try {
             dbLoader = diff.getDatabaseLoader(arguments.getNewSrc(),
