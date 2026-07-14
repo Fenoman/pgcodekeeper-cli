@@ -27,21 +27,21 @@
     </developers>
 
     <properties>
-        <codekeeper.version>14.7.0</codekeeper.version>
+        <codekeeper.version>15.0.0</codekeeper.version>
 
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <mainClass>org.pgcodekeeper.cli.Application</mainClass>
 
-        <sonar.language>java</sonar.language>
         <sonar.java.binaries>${project.build.directory}/classes</sonar.java.binaries>
         <sonar.java.source>${java.version}</sonar.java.source>
         <sonar.java.target>${java.version}</sonar.java.target>
         <sonar.core.coveragePlugin>jacoco</sonar.core.coveragePlugin>
+        <sonar.inclusions>**/*.java</sonar.inclusions>
         <sonar.exclusions>**/*.sql, **/*.xml, **/generated/**, **/Messages.java</sonar.exclusions>
 
-        <logback.version>1.5.34</logback.version>
+        <logback.version>1.5.38</logback.version>
     </properties>
 
     <dependencies>
@@ -69,7 +69,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>6.0.3</version>
+            <version>6.1.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -79,7 +79,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.7.1</version>
+                <version>3.8.0</version>
                 <executions>
                     <execution>
                         <id>bundle</id>
@@ -120,7 +120,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.1</version>
+                <version>3.15.0</version>
                 <configuration>
                     <release>${java.version}</release>
                 </configuration>
@@ -128,7 +128,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.4</version>
+                <version>3.5.6</version>
             </plugin>
         </plugins>
     </build>
@@ -141,12 +141,12 @@
                     <plugin>
                         <groupId>org.sonarsource.scanner.maven</groupId>
                         <artifactId>sonar-maven-plugin</artifactId>
-                        <version>5.5.0.6356</version>
+                        <version>5.7.0.6970</version>
                     </plugin>
                     <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>0.8.14</version>
+                        <version>0.8.15</version>
                         <executions>
                             <execution>
                                 <id>prepare-agent</id>
