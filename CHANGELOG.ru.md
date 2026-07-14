@@ -13,6 +13,12 @@
 
 ### Исправлено
 
+## [15.0.0] - 2026-07-14
+
+### Изменено
+
+- Обновлены библиотечные зависимости.
+
 ## [14.7.0] - 2026-06-30
 
 ### Изменено
@@ -221,7 +227,8 @@
 - Исправлена ошибка с работой настроек при сохранении объектов в проект.
 - Исправлены ложные различия при игнорировании порядка колонок таблицы.
 
-[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.7.0...HEAD
+[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.0.0...HEAD
+[15.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.7.0...v15.0.0
 [14.7.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.6.0...v14.7.0
 [14.6.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.5.0...v14.6.0
 [14.5.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.4.1...v14.5.0
