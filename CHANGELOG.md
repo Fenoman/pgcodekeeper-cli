@@ -13,6 +13,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [15.1.0] - 2026-07-30
+
+### Added
+
+- Added support for changing table and column compression settings via `ALTER TABLE` commands instead of recreating objects when the Greenplum 7 syntax is enabled.
+
+### Changed
+
+- Disabled dependency analysis for objects that could not be parsed correctly, reducing the number of irrelevant errors displayed to the user.
+
+### Fixed
+
+- Fixed a parsing error for the `ALTER SEQUENCE ... SET LOGGED/UNLOGGED` command for regular sequences in PostgreSQL.
+- Fixed an error in the order of PostgreSQL `ALTER TABLE ... OWNER TO` and `ALTER SEQUENCE ... OWNER TO` commands by moving the latter to the end of the migration script.
+
+### Security
+
+- Increased version of lz4-java library due to CVE-2026-59949.
+
 ## [15.0.0] - 2026-07-14
 
 ### Changed
@@ -231,7 +250,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed a bug with the settings when saving objects to a project.
 - Fixed false differences when ignoring table column order.
 
-[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.0.0...HEAD
+[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.1.0...HEAD
+[15.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.0.0...v15.1.0
 [15.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.7.0...v15.0.0
 [14.7.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.6.0...v14.7.0
 [14.6.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.5.0...v14.6.0
