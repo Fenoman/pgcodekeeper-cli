@@ -13,6 +13,25 @@
 
 ### Исправлено
 
+## [15.1.0] - 2026-07-30
+
+### Добавлено
+
+- Добавлено изменение настроек сжатия таблиц и колонок командами `ALTER TABLE` вместо пересоздания объектов при включенном синтаксисе Greenplum 7.
+
+### Изменено
+
+- Отключен анализ зависимостей объектов, которые не получилось правильно распарсить, что уменьшило количество нерелевантных ошибок, отображаемых пользователю.
+
+### Исправлено
+
+- Исправлена ошибка парсинга команды `ALTER SEQUENCE ... SET LOGGED/UNLOGGED` для классических последовательностей в PostgreSQL.
+- Исправлена ошибка в последовательности команд PostgreSQL `ALTER TABLE ... OWNER TO` и `ALTER SEQUENCE ... OWNER TO` путем перемещения последней в конец скрипта миграции.
+
+### Безопасность
+
+- Повышена версия библиотеки lz4-java из-за CVE-2026-59949.
+
 ## [15.0.0] - 2026-07-14
 
 ### Изменено
@@ -227,7 +246,8 @@
 - Исправлена ошибка с работой настроек при сохранении объектов в проект.
 - Исправлены ложные различия при игнорировании порядка колонок таблицы.
 
-[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.0.0...HEAD
+[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.1.0...HEAD
+[15.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.0.0...v15.1.0
 [15.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.7.0...v15.0.0
 [14.7.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.6.0...v14.7.0
 [14.6.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.5.0...v14.6.0
