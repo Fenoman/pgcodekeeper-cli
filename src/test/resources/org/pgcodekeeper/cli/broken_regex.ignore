@@ -1,0 +1,27 @@
+SHOW ALL
+HIDE REGEX,QUALIFIED 'dummy_tmp(?!.*(meta|rptgen|security).*)'
+HIDE NONE 'fixture_view' type=VIEW
+HIDE NONE 'sv_conn_points' type=VIEW
+HIDE NONE 'sv_subscr_pe' type=VIEW
+HIDE CONTENT,REGEX 'sd_divisions'
+HIDE CONTENT,REGEX 'sd_subdivisions'
+HIDE CONTENT,REGEX '.*' type=EXTENSION
+HIDE CONTENT,REGEX '.*.*' type=EVENT_TRIGGER
+HIDE REGEX '' type=SERVER
+HIDE REGEX 'pglog' type=TABLE
+HIDE NONE t_0stat_before_01_iud_deny_dml type=TRIGGER
+HIDE REGEX xpo.* type=TABLE
+HIDE CONTENT dbo_ms type=SCHEMA
+HIDE CONTENT,REGEX 'mssql\_.+' type=SCHEMA
+HIDE NONE t_3stat_after_99_d_audit_data type=TRIGGER
+HIDE NONE t_3stat_after_99_u_audit_data type=TRIGGER
+HIDE NONE t_1row_before_01_u_audit_simple type=TRIGGER
+HIDE NONE t_1row_before_01_iu_audit_full type=TRIGGER
+HIDE NONE t_0stat_before_00_iud_audit_transaction type=TRIGGER
+HIDE NONE t_3stat_after_98_u_rmq_relay type=TRIGGER
+HIDE NONE t_3stat_after_98_i_rmq_relay type=TRIGGER
+HIDE NONE t_3stat_after_98_d_rmq_relay type=TRIGGER
+HIDE REGEX 'deny_dummy_tmp_drop' type=EVENT_TRIGGER
+HIDE REGEX 'function_change_trigger' type=EVENT_TRIGGER
+HIDE REGEX 'function_drop_trigger' type=EVENT_TRIGGER
+HIDE REGEX 'evt_replica_ddl_control' type=EVENT_TRIGGER

@@ -51,9 +51,33 @@ public final class Application {
     private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 
     public static void main(String[] args) {
-        boolean result = process(args);
-        if (!result) {
-            System.exit(1);
+        int exitCode;
+        try {
+            exitCode = process(args) ? 0 : 1;
+        } catch (Throwable th) {
+            // Keep the CLI boundary fail-closed for Errors not handled by process().
+            exitCode = 1;
+            reportFatalError(th);
+        }
+        if (exitCode != 0) {
+            System.exit(exitCode);
+        }
+    }
+
+    /**
+     * Formats the single-line stderr report for a Throwable that reached the
+     * top of the CLI, including Errors like {@link OutOfMemoryError}.
+     */
+    static String formatFatalError(Throwable th) {
+        return "pgcodekeeper-cli: fatal error: " + th;
+    }
+
+    private static void reportFatalError(Throwable th) {
+        try {
+            System.err.println(formatFatalError(th));
+            th.printStackTrace(System.err);
+        } catch (Throwable ignored) {
+            // reporting must never mask the non-zero exit code
         }
     }
 
@@ -67,6 +91,7 @@ public final class Application {
             if (!arguments.parse(args)) {
                 return true;
             }
+            logCacheMode(arguments);
             if (arguments.isClearLibCache()) {
                 clearCache();
             }
@@ -74,6 +99,7 @@ public final class Application {
             return switch (arguments.getMode()) {
                 case PARSE -> parse(arguments);
                 case GRAPH -> graph(arguments);
+                case BATCH -> batchDiff(arguments);
                 default -> {
                     if (arguments.getOldSrc() == null || arguments.getNewSrc() == null) {
                         // clear cache
@@ -98,6 +124,21 @@ public final class Application {
         }
     }
 
+    /**
+     * Reports the resolved PostgreSQL cache configuration before any work
+     * starts. A silently degraded run, such as a persistent cache whose
+     * directory never reached the settings, is otherwise indistinguishable
+     * from a correct one in a CI log.
+     */
+    private static void logCacheMode(CliArgs arguments) {
+        String cacheDir = arguments.getPgCatalogCacheDir();
+        LOG.info(Messages.Main_log_cache_mode.formatted(
+                cacheDir != null ? cacheDir : Messages.Main_log_cache_dir_absent,
+                arguments.getPgCatalogCacheMaxMb(),
+                arguments.isPgCatalogCacheRows(),
+                arguments.isPgRoutineBodyHashFirst()));
+    }
+
     private static boolean diff(CliArgs arguments)
             throws InterruptedException, IOException, SQLException {
         try (PrintWriter encodedWriter = getDiffWriter(arguments)) {
@@ -107,7 +148,7 @@ public final class Application {
                 LOG.info(Messages.Main_log_create_script);
                 text = diff.createDiff();
             } catch (IllegalStateException ex) {
-                printError(diff);
+                printError(diff, ex);
                 return false;
             }
 
@@ -150,6 +191,17 @@ public final class Application {
         return true;
     }
 
+    private static boolean batchDiff(CliArgs arguments)
+            throws CmdLineException, InterruptedException, IOException {
+        var batch = new PgBatchDiffCli(arguments);
+        try {
+            return batch.run();
+        } catch (IllegalStateException ex) {
+            printError(batch.getErrors(), ex);
+            return false;
+        }
+    }
+
     private static PrintWriter getDiffWriter(CliArgs arguments)
             throws FileNotFoundException, UnsupportedEncodingException {
         String outFile = arguments.getOutputTarget();
@@ -167,7 +219,7 @@ public final class Application {
                 diff.exportProject();
             }
         } catch (IllegalStateException ex) {
-            diff.getErrors().forEach(Application::writeError);
+            printError(diff, ex);
             return false;
         }
 
@@ -177,18 +229,28 @@ public final class Application {
 
     private static boolean graph(CliArgs arguments) throws IOException, InterruptedException {
         var diff = new PgDiffCli(arguments);
-        ILoader dbLoader;
+        List<String> dependencies;
+        // the try covers the load, not just the construction of its loader:
+        // getDatabaseLoader only picks a loader for the source format and never
+        // reads anything, so a catch around it alone could never see a load
+        // error. analyzeDependencies below is where the source is actually read,
+        // and its errors land in the same list every other mode gates on
         try {
-            dbLoader = diff.getDatabaseLoader(arguments.getNewSrc(),
+            ILoader dbLoader = diff.getDatabaseLoader(arguments.getNewSrc(),
                     arguments.getTargetLibXmls(), arguments.getTargetLibs(), arguments.getTargetLibsWithoutPriv());
+            LOG.info(Messages.Main_log_build_graph_deps);
+            dependencies = PgCodeKeeperApi.analyzeDependencies(dbLoader, arguments.getGraphNames(),
+                    arguments.getGraphDepth(), arguments.isGraphReverse(),
+                    arguments.getGraphFilterTypes(), arguments.isGraphInvertFilter());
+            // the contract diff, parse and batch all hold: a statement that did
+            // not load declares nothing, so the graph built without it is
+            // missing edges - and a deployment ordered off it would be wrong
+            // with nothing on stderr and exit 0 to say so
+            diff.assertErrorsEmpty();
         } catch (IllegalStateException ex) {
-            printError(diff);
+            printError(diff, ex);
             return false;
         }
-        LOG.info(Messages.Main_log_build_graph_deps);
-        List<String> dependencies = PgCodeKeeperApi.analyzeDependencies(dbLoader, arguments.getGraphNames(),
-                arguments.getGraphDepth(), arguments.isGraphReverse(),
-                arguments.getGraphFilterTypes(), arguments.isGraphInvertFilter());
 
         try (PrintWriter pw = getDiffWriter(arguments)) {
             Consumer<String> consumer = pw != null ? pw::println : Application::writeToConsole;
@@ -205,9 +267,25 @@ public final class Application {
         writeMessage(Messages.Main_cach_clear);
     }
 
-    private static void printError(PgDiffCli diff) {
-        for (var err : diff.getErrors()) {
+    private static void printError(PgDiffCli diff, Throwable cause) {
+        printError(diff.getErrors(), cause);
+    }
+
+    static void printError(List<Object> errors, Throwable cause) {
+        for (var err : errors) {
             writeError(err);
+        }
+        // never fail silently. The collected loader errors account for exactly
+        // one failure - the load that reported them, which is what
+        // LoadErrorsException stands for and why it adds nothing here. Every
+        // other cause is a failure the list cannot explain: a catalog reader
+        // that died, a wrapped OutOfMemoryError, an invariant a loader tripped
+        // over. Dropping it because a parse error happened to be in the list
+        // leaves the operator fixing a syntax error that was never the reason,
+        // and the caller returns false straight after, so nothing downstream
+        // ever sees the cause either
+        if (errors.isEmpty() || !(cause instanceof LoadErrorsException)) {
+            writeError(cause);
         }
     }
 
