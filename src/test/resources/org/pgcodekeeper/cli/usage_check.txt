@@ -3,6 +3,7 @@ Usage
 	pgcodekeeper-cli -s SOURCE -t DEST [option]...
 	pgcodekeeper-cli --mode PARSE -o OUTDIR [--update-project] [option]... SOURCE
 	pgcodekeeper-cli --mode GRAPH [option]... SOURCE
+	pgcodekeeper-cli --mode BATCH --batch-manifest MANIFEST
 
  SOURCE                                 : source of schema changes
  DEST                                   : destination for schema changes (diff
@@ -16,6 +17,16 @@ Usage
  --allowed-object (-O) <OBJECT_TYPE>    : build the script using these object
                                           types only, hide statements of other
                                           objects
+ --batch-manifest <path>                : path to a JSON batch manifest: shared
+                                          load arguments plus several outputs
+                                          generated from a single loaded
+                                          comparison
+                                          each output is byte-identical to a
+                                          standalone run with common + output
+                                          args
+                                          failed outputs do not stop the others
+                                          and are reported on stderr (BATCH
+                                          mode only)
  --clear-lib-cache                      : clear library cache
  --cluster-name <name>                  : the name of the cluster that will be
                                           applied to all tables (experimentally,
@@ -55,6 +66,10 @@ Usage
  --help                                 : show this help
  --ignore-column-order                  : ignore differences in table column
                                           order
+ --ignore-column-statistics             : ignore the statistics target of
+                                          columns (attstattarget) when
+                                          comparing; CREATE STATISTICS objects
+                                          are unaffected
  --ignore-concurrent-modification (-m)  : ignore concurrent modification errors
                                           of database objects
  --ignore-errors                        : do not stop on parse errors
@@ -65,7 +80,11 @@ Usage
  --ignore-schema <path>                 : use an ignore schema list to
                                           include/exclude schemas at loading
                                           stage
+ --ignore-sequence-cache                : ignore the CACHE parameter of
+                                          sequences when comparing
  --in-charset <charset>                 : input charset (default: UTF-8)
+ --jdbc-fetch-size <n>                  : JDBC catalog fetch size; 0 keeps the
+                                          driver default (default: 512)
  --keep-newlines (-L)                   : keep newline characters as is (don't
                                           convert to Unix newlines)
  --lib-safe-mode                        : exit with an error if a library
@@ -75,22 +94,92 @@ Usage
                                           objects loaded first have priority
  --list-charsets                        : show list of Java-supported charsets
  --migrate-data                         : migrate data when re-creating tables
- --mode [DIFF | PARSE | GRAPH]          : specify mode:
+ --mode [DIFF | PARSE | GRAPH | BATCH]  : specify mode:
                                           DIFF - to compares the two sources
                                           and generates a migration script;
                                           PARSE - to save database schema as a
                                           directory hierarchy;
                                           GRAPH - to search for dependencies of
                                           an object;
+                                          BATCH - to generate several migration
+                                          scripts from one loaded comparison,
+                                          see --batch-manifest;
                                            (default: DIFF)
+ --no-alter-table-only                  : write ALTER TABLE without ONLY, so
+                                          changes reach inheritance children
+                                          and TimescaleDB hypertables accept
+                                          them
  --no-check-function-bodies (-F)        : set check_function_bodies to false at
                                           the beginning of the script
+ --no-parallel-load                     : load the comparison sides
+                                          sequentially (rollback switch for the
+                                          --parallel-load default); also turns
+                                          the hash-first routine body default
+                                          off
  --no-privileges (-P)                   : ignore privileges and owners of
                                           database objects
  --out-charset <charset>                : output charset (default: UTF-8)
  --output (-o) <path>                   : script output file or parser output
                                           directory
  --parallel-load (-par)                 : use parallel database loading
+                                          (default; this flag is a no-op kept
+                                          for script compatibility, see
+                                          --no-parallel-load)
+ --pg-catalog-cache-dir <path>          : persistent local cache directory for
+                                          PostgreSQL routine bodies fetched on
+                                          the hash-first path; repeat
+                                          comparisons skip downloading
+                                          unchanged bodies
+ --pg-catalog-cache-max-mb <n>          : size cap of the PostgreSQL catalog
+                                          cache in megabytes; oldest entries
+                                          are pruned after a run (default: 512)
+ --pg-catalog-cache-rows                : additionally cache whole PostgreSQL
+                                          catalog reader rows keyed by a
+                                          server-side row hash; repeat
+                                          comparisons transfer only changed rows
+ --pg-parallel-catalog-readers <n>      : read PostgreSQL catalogs with N extra
+                                          connections sharing the primary
+                                          snapshot; 0 keeps the sequential
+                                          flow; loads that cannot share the
+                                          snapshot fall back to sequential
+                                          reading (CLI default: 3; the core/IDE
+                                          default stays 0)
+ --pg-routine-body-hash-first           : reuse matching PostgreSQL routine
+                                          bodies from the project and fetch
+                                          only residual bodies (default for
+                                          PostgreSQL DIFF mode; this flag is a
+                                          no-op kept for script compatibility,
+                                          see --pg-routine-body-no-hash-first)
+ --pg-routine-body-no-hash-first        : always fetch full PostgreSQL routine
+                                          bodies from the database (rollback
+                                          switch for the hash-first default);
+                                          cannot be combined with the
+                                          hash-first-only options
+                                          --pg-routine-body-residual-batch-count
+                                          , --pg-routine-body-residual-batch-byt
+                                          es and --pg-catalog-cache-dir
+ --pg-routine-body-no-skip-matched-anal : always analyze and fetch database
+ ysis                                     routine bodies (rollback switch); by
+                                          default late-bound bodies (plpgsql,
+                                          or quoted sql with --no-check-function
+                                          -bodies) skip dependency analysis on
+                                          the hash-first path: bodies
+                                          byte-identical between project and
+                                          database skip on both sides, and
+                                          every eligible body of the database
+                                          acting as the old comparison side
+                                          skips regardless of the match, with
+                                          unmatched old-side bodies not even
+                                          fetched; such functions lose
+                                          collateral recreates in drop
+                                          cascades; changed project bodies are
+                                          always analyzed
+ --pg-routine-body-residual-batch-bytes : predicted UTF-8 grouping budget for
+ <n>                                      each PostgreSQL residual routine body
+                                          batch; one oversized body is fetched
+                                          alone (default: 33554432)
+ --pg-routine-body-residual-batch-count : maximum PostgreSQL residual routine
+ <n>                                      bodies per JDBC batch (default: 256)
  --post-script <path>                   : POST script file path or directory
                                           with POST scripts
                                           nested directories are loaded
@@ -103,6 +192,9 @@ Usage
                                           recursively
                                           specify multiple times to use several
                                           paths
+ --project-file-filter <path>           : filter top-level project files using
+                                          ordered rules from a UTF-8 file
+                                          (opt-in)
  --run-on (-R) <JDBC>                   : run generated script on the specified
                                           database
  --run-on-target (-r)                   : run generated script on the target

@@ -16,6 +16,8 @@
 package org.pgcodekeeper.cli;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -27,40 +29,44 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 class DiffTest {
 
     private static Stream<Arguments> generator() {
-        return Stream.of(
-                Arguments.of(new SourceTargerArgumentsProvider()),
-                Arguments.of(new AddTestArgumentsProvider()),
-                Arguments.of(new ModifyTestArgumentsProvider()),
-                Arguments.of(new DangerTableArgumentsProvider()),
-                Arguments.of(new DangerDropColArgumentsProvider()),
-                Arguments.of(new DangerAlterColArgumentsProvider()),
-                Arguments.of(new FlagsArgumentsProvider()),
-                Arguments.of(new IgnoreListsArgumentsProvider()),
-                Arguments.of(new AllowedObjectsArgumentsProvider()),
-                Arguments.of(new AllowedObjectsChangeTrackingArgumentsProvider()),
-                Arguments.of(new AllowedObjectsSysVerArgumentsProvider()),
-                Arguments.of(new LibrariesArgumentsProvider()),
-                Arguments.of(new LibrariesNoPrivArgumentsProvider()),
-                Arguments.of(new LibrariesXmlArgumentsProvider()),
-                Arguments.of(new SelectedOnlyArgumentsProvider()),
-                Arguments.of(new AddConstraintNotValid()),
-                Arguments.of(new AddDropBeforeCreate()),
-                Arguments.of(new GenerateExistDoBlock()));
+        return Stream.<Supplier<ArgumentsProvider>>of(
+                SourceTargerArgumentsProvider::new,
+                AddTestArgumentsProvider::new,
+                ModifyTestArgumentsProvider::new,
+                DangerTableArgumentsProvider::new,
+                DangerDropColArgumentsProvider::new,
+                DangerAlterColArgumentsProvider::new,
+                FlagsArgumentsProvider::new,
+                IgnoreListsArgumentsProvider::new,
+                AllowedObjectsArgumentsProvider::new,
+                AllowedObjectsChangeTrackingArgumentsProvider::new,
+                AllowedObjectsSysVerArgumentsProvider::new,
+                LibrariesArgumentsProvider::new,
+                LibrariesNoPrivArgumentsProvider::new,
+                LibrariesXmlArgumentsProvider::new,
+                SelectedOnlyArgumentsProvider::new,
+                AddConstraintNotValid::new,
+                AddDropBeforeCreate::new,
+                GenerateExistDoBlock::new)
+                .flatMap(factory -> Stream.of(false, true)
+                        .map(parallel -> Arguments.of(factory.get(), parallel)));
     }
 
     @ParameterizedTest
     @MethodSource("generator")
-    void mainTest(ArgumentsProvider args) throws IOException, URISyntaxException {
+    void mainTest(ArgumentsProvider args, boolean parallel)
+            throws IOException, URISyntaxException {
         try (args) {
-            boolean result = Application.process(args.args());
+            boolean result = Application.process(withParallelLoad(args.args(), parallel));
             Path resFile = args.getDiffResultFile();
             Path predefined = args.getPredefinedResultFile();
-            String name = args.getClass().getSimpleName();
+            String name = args.getClass().getSimpleName() + ", parallel=" + parallel;
 
             Assertions.assertTrue(result, name + " - Diff finished with error");
             Assertions.assertTrue(Files.exists(predefined), name + " - Predefined file does not exist: " + predefined);
@@ -76,6 +82,75 @@ class DiffTest {
                         name + " - Predefined and resulting script differ");
             }
         }
+    }
+
+    @Test
+    void projectFileFilterIsSharedByBothSidesAndParallelModesAreByteIdentical(
+            @TempDir Path tempDir) throws IOException {
+        Path oldProject = tempDir.resolve("old-project");
+        Path newProject = tempDir.resolve("new-project");
+        writeProjectFile(oldProject, "SCHEMA/public/public.sql", "CREATE SCHEMA public;");
+        writeProjectFile(newProject, "SCHEMA/public/public.sql", "CREATE SCHEMA public;");
+
+        writeProjectFile(oldProject, "SCHEMA/public/TABLE/kept_table.sql",
+                "CREATE TABLE public.kept_table (id integer);");
+        writeProjectFile(newProject, "SCHEMA/public/TABLE/kept_table.sql",
+                "CREATE TABLE public.kept_table (id bigint);");
+        writeProjectFile(oldProject, "SCHEMA/public/TABLE/included_exception.sql",
+                "CREATE TABLE public.included_exception (id integer);");
+        writeProjectFile(newProject, "SCHEMA/public/TABLE/included_exception.sql",
+                "CREATE TABLE public.included_exception (id integer, added text);");
+
+        writeProjectFile(oldProject, "SCHEMA/public/TABLE/old_broken.sql",
+                "THIS IS INVALID SQL;");
+        writeProjectFile(newProject, "SCHEMA/public/TABLE/new_broken.sql",
+                "THIS IS INVALID SQL;");
+        writeProjectFile(newProject, "SCHEMA/public/TABLE/unwanted.sql",
+                "CREATE TABLE public.unwanted (id integer);");
+
+        Path filter = Files.writeString(tempDir.resolve("project.filter"), """
+                EXCLUDE REGEX ^SCHEMA/public/TABLE/.*\\.sql$
+                INCLUDE PATH SCHEMA/public/TABLE/kept_table.sql
+                INCLUDE PATH SCHEMA/public/TABLE/included_exception.sql
+                """);
+        Path sequential = tempDir.resolve("sequential.sql");
+        Path parallel = tempDir.resolve("parallel.sql");
+
+        Assertions.assertTrue(Application.process(new String[] {
+                "--no-parallel-load", "--project-file-filter", filter.toString(),
+                "-s", newProject.toString(), "-t", oldProject.toString(),
+                "-o", sequential.toString()
+        }));
+        Assertions.assertTrue(Application.process(new String[] {
+                "--parallel-load", "--project-file-filter", filter.toString(),
+                "-s", newProject.toString(), "-t", oldProject.toString(),
+                "-o", parallel.toString()
+        }));
+
+        Assertions.assertArrayEquals(Files.readAllBytes(sequential),
+                Files.readAllBytes(parallel),
+                "sequential and parallel filtered output must be byte-identical");
+        String script = Files.readString(sequential);
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(script.contains("kept_table"), script),
+                () -> Assertions.assertTrue(script.contains("included_exception"), script),
+                () -> Assertions.assertFalse(script.contains("unwanted"), script),
+                () -> Assertions.assertFalse(script.contains("broken"), script));
+    }
+
+    private static String[] withParallelLoad(String[] arguments, boolean parallel) {
+        // Select each loading path explicitly and require byte-identical output.
+        String[] result = new String[arguments.length + 1];
+        result[0] = parallel ? "--parallel-load" : "--no-parallel-load";
+        System.arraycopy(arguments, 0, result, 1, arguments.length);
+        return result;
+    }
+
+    private static void writeProjectFile(Path projectRoot, String relativePath, String sql)
+            throws IOException {
+        Path file = projectRoot.resolve(relativePath);
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, sql + '\n');
     }
 
     private boolean filesEqualIgnoreNewLines(Path f1, Path f2) throws IOException {

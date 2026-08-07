@@ -43,6 +43,17 @@ public abstract class ArgumentsProvider implements AutoCloseable {
 
     protected abstract String[] args() throws URISyntaxException, IOException;
 
+    /**
+     * Names the case in the surefire report. The inherited {@code Object.toString()}
+     * carries an identity hash, which makes the reported test name differ on every
+     * run once phrased test case names are enabled.
+     */
+    @Override
+    public String toString() {
+        String name = getClass().getSimpleName();
+        return resName == null ? name : name + '(' + resName + ')';
+    }
+
     public String output() {
         return "";
     }

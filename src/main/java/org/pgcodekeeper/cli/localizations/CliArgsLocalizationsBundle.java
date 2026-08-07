@@ -51,12 +51,15 @@ public final class CliArgsLocalizationsBundle extends ListResourceBundle {
                 { "ClearLibCache", Messages.CliArgs_clear_lib_cache }, //$NON-NLS-1$
                 { "cluster-name", Messages.CliArgs_cluster_name }, //$NON-NLS-1$
                 { "mode", Messages.CliArgs_mode }, //$NON-NLS-1$
+                { "batch-manifest", Messages.CliArgs_batch_manifest }, //$NON-NLS-1$
+                { "project-file-filter", Messages.CliArgs_project_file_filter }, //$NON-NLS-1$
                 { "source", Messages.CliArgs_source }, //$NON-NLS-1$
                 { "target", Messages.CliArgs_target }, //$NON-NLS-1$
                 { "output", Messages.CliArgs_output }, //$NON-NLS-1$
                 { "run-on-target", Messages.CliArgs_run_on_target }, //$NON-NLS-1$
                 { "run-on", Messages.CliArgs_run_on }, //$NON-NLS-1$
                 { "in-charset", Messages.CliArgs_in_charset }, //$NON-NLS-1$
+                { "jdbc-fetch-size", Messages.CliArgs_jdbc_fetch_size }, //$NON-NLS-1$
                 { "out-charset", Messages.CliArgs_out_charset }, //$NON-NLS-1$
                 { "error", Messages.CliArgs_show_error }, //$NON-NLS-1$
                 { "ignore-errors", Messages.CliArgs_ignore_errors }, //$NON-NLS-1$
@@ -70,6 +73,9 @@ public final class CliArgsLocalizationsBundle extends ListResourceBundle {
                 { "pre-script", Messages.CliArgs_pre_script }, //$NON-NLS-1$
                 { "post-script", Messages.CliArgs_post_script }, //$NON-NLS-1$
                 { "ignore-column-order", Messages.CliArgs_ignore_column_order }, //$NON-NLS-1$
+                { "ignore-sequence-cache", Messages.CliArgs_ignore_sequence_cache }, //$NON-NLS-1$
+                { "no-alter-table-only", Messages.CliArgs_no_alter_table_only }, //$NON-NLS-1$
+                { "ignore-column-statistics", Messages.CliArgs_ignore_column_statistics }, //$NON-NLS-1$
                 { "generate-constraint-not-valid", Messages.CliArgs_generate_constraint_not_valid }, //$NON-NLS-1$
                 { "using-off", Messages.CliArgs_using_off }, //$NON-NLS-1$
                 { "migrate-data", Messages.CliArgs_migrate_data }, //$NON-NLS-1$
@@ -102,6 +108,16 @@ public final class CliArgsLocalizationsBundle extends ListResourceBundle {
                 { "graph-filter-object", Messages.CliArgs_graph_filter_object }, //$NON-NLS-1$
                 { "graph-invert-filter", Messages.CliArgs_graph_invert_filter }, //$NON-NLS-1$
                 { "parallel-load", Messages.CliArgs_use_parallel_load }, //$NON-NLS-1$
+                { "no-parallel-load", Messages.CliArgs_no_parallel_load }, //$NON-NLS-1$
+                { "pg-catalog-cache-dir", Messages.CliArgs_pg_catalog_cache_dir }, //$NON-NLS-1$
+                { "pg-catalog-cache-max-mb", Messages.CliArgs_pg_catalog_cache_max_mb }, //$NON-NLS-1$
+                { "pg-catalog-cache-rows", Messages.CliArgs_pg_catalog_cache_rows }, //$NON-NLS-1$
+                { "pg-parallel-catalog-readers", Messages.CliArgs_pg_parallel_catalog_readers }, //$NON-NLS-1$
+                { "pg-routine-body-hash-first", Messages.CliArgs_pg_routine_body_hash_first }, //$NON-NLS-1$
+                { "pg-routine-body-no-hash-first", Messages.CliArgs_pg_routine_body_no_hash_first }, //$NON-NLS-1$
+                { "pg-routine-body-no-skip-matched-analysis", Messages.CliArgs_pg_routine_body_no_skip_matched_analysis }, //$NON-NLS-1$
+                { "pg-routine-body-residual-batch-count", Messages.CliArgs_pg_routine_body_residual_batch_count }, //$NON-NLS-1$
+                { "pg-routine-body-residual-batch-bytes", Messages.CliArgs_pg_routine_body_residual_batch_bytes }, //$NON-NLS-1$
                 { "disable-auto-load", Messages.CliArgs_disable_auto_load }, //$NON-NLS-1$
                 { "use-actual-syntax", Messages.CliArgs_use_actual_syntax }, //$NON-NLS-1$
                 { "additional-dependencies", Messages.CliArgs_deps_file }, //$NON-NLS-1$

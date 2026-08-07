@@ -16,6 +16,7 @@
 package org.pgcodekeeper.cli;
 
 import org.kohsuke.args4j.*;
+import org.kohsuke.args4j.spi.OptionHandler;
 import org.pgcodekeeper.cli.localizations.CliArgsLocalizationsBundle;
 import org.pgcodekeeper.cli.localizations.Messages;
 import org.pgcodekeeper.cli.opthandlers.BooleanNoDefOptionHandler;
@@ -31,11 +32,15 @@ import org.pgcodekeeper.core.database.ms.MsDatabaseProvider;
 import org.pgcodekeeper.core.database.pg.PgDatabaseProvider;
 import org.pgcodekeeper.core.settings.AbstractSettings;
 import org.pgcodekeeper.core.settings.ISettings;
+import org.pgcodekeeper.core.settings.ProjectFileFilter;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,7 +56,8 @@ public class CliArgs extends AbstractSettings {
     enum CliMode {
         DIFF,
         PARSE,
-        GRAPH
+        GRAPH,
+        BATCH
     }
 
     private static final String PG = "PG";
@@ -60,7 +66,25 @@ public class CliArgs extends AbstractSettings {
     private static final String URL_START_JDBC = "jdbc:"; //$NON-NLS-1$
     private static final int DEFAULT_DEPTH = 10;
 
+    /**
+     * Delimiter that separates an option name from its value inside a single
+     * argument token. args4j defaults to a space, which makes such a token
+     * unparseable: a 0-argument option never advances the token cursor, so the
+     * parser spins forever, and a 1-argument option swallows the option name
+     * into its own value. Only '=' joins a name and a value in one token here;
+     * a space always separates two tokens.
+     */
+    private static final String OPTION_VALUE_DELIMITER = "="; //$NON-NLS-1$
+
+    /**
+     * CLI-specific performance defaults. Core ({@link ISettings}) keeps
+     * conservative defaults for consumers that do not select this profile.
+     */
+    static final int DEFAULT_CLI_JDBC_FETCH_SIZE = 512;
+    static final int DEFAULT_CLI_PG_PARALLEL_CATALOG_READERS = 3;
+
     private IDatabaseProvider provider;
+    private volatile boolean collectObjectReferences = true;
 
     // SONAR-OFF
     {
@@ -84,7 +108,10 @@ public class CliArgs extends AbstractSettings {
         this.graphDepth = DEFAULT_DEPTH;
         this.dbType = PG;
         this.mode = CliMode.DIFF;
-        this.parallelLoad = false;
+        // CLI defaults remain overridable by the corresponding explicit options.
+        this.parallelLoad = true;
+        this.jdbcFetchSize = DEFAULT_CLI_JDBC_FETCH_SIZE;
+        setPgParallelCatalogReaders(DEFAULT_CLI_PG_PARALLEL_CATALOG_READERS);
         this.disableAutoLoad = false;
     }
     // SONAR-ON
@@ -110,6 +137,17 @@ public class CliArgs extends AbstractSettings {
     @Option(name = "--mode", usage = "mode")
     private CliMode mode;
 
+    @Option(name = "--batch-manifest", metaVar = CliArgsLocalizationsBundle.PATH, usage = "batch-manifest")
+    private String batchManifestPath;
+
+    @Option(name = "--project-file-filter", metaVar = CliArgsLocalizationsBundle.PATH,
+            usage = "project-file-filter")
+    private String projectFileFilterPath;
+
+    private boolean projectFileFilterResolved;
+    private String preparedProjectFileFilterPath;
+    private ProjectFileFilter preparedProjectFileFilter;
+
     @Option(name = "--source", depends = "-t", aliases = "-s", metaVar = CliArgsLocalizationsBundle.PATH_OR_JDBC, usage = "source")
     @Argument(index = 0, metaVar = CliArgsLocalizationsBundle.SOURCE, usage = "source")
     private String newSrc;
@@ -129,6 +167,13 @@ public class CliArgs extends AbstractSettings {
 
     @Option(name = "--in-charset", metaVar = CliArgsLocalizationsBundle.CHARSET, usage = "in-charset")
     private String inCharsetName;
+
+    @Option(name = "--jdbc-fetch-size", metaVar = CliArgsLocalizationsBundle.N, usage = "jdbc-fetch-size")
+    private Integer jdbcFetchSizeOption;
+
+    // resolved value: DEFAULT_CLI_JDBC_FETCH_SIZE unless the option is given;
+    // an explicit 0 keeps the JDBC driver default (fetch everything at once)
+    private int jdbcFetchSize;
 
     @Option(name = "--out-charset", metaVar = CliArgsLocalizationsBundle.CHARSET, usage = "out-charset")
     private String outCharsetName;
@@ -168,6 +213,15 @@ public class CliArgs extends AbstractSettings {
 
     @Option(name = "--ignore-column-order", usage = "ignore-column-order")
     private boolean ignoreColumnOrder;
+
+    @Option(name = "--ignore-sequence-cache", usage = "ignore-sequence-cache")
+    private boolean ignoreSequenceCache;
+
+    @Option(name = "--no-alter-table-only", usage = "no-alter-table-only")
+    private boolean noAlterTableOnly;
+
+    @Option(name = "--ignore-column-statistics", usage = "ignore-column-statistics")
+    private boolean ignoreColumnStatistics;
 
     @Option(name = "--generate-constraint-not-valid", aliases = "-v", usage = "generate-constraint-not-valid")
     private boolean generateConstraintNotValid;
@@ -265,8 +319,56 @@ public class CliArgs extends AbstractSettings {
     @Option(name = "--cluster-name", metaVar = CliArgsLocalizationsBundle.NAME, usage = "cluster-name")
     private String clusterName;
 
+    // Parallel loading is the CLI default; the positive option is idempotent
+    // and the negative option selects sequential loading.
     @Option(name = "--parallel-load", aliases = "-par", usage = "parallel-load")
+    private boolean parallelLoadOption;
+
+    @Option(name = "--no-parallel-load", usage = "no-parallel-load")
+    private boolean noParallelLoadOption;
+
     private boolean parallelLoad;
+
+    // Hash-first is the CLI default for PostgreSQL DIFF comparisons; the
+    // positive option is idempotent and the negative option selects full bodies.
+    @Option(name = "--pg-routine-body-hash-first",
+            usage = "pg-routine-body-hash-first")
+    private boolean pgRoutineBodyHashFirstOption;
+
+    @Option(name = "--pg-routine-body-no-hash-first",
+            usage = "pg-routine-body-no-hash-first")
+    private boolean pgRoutineBodyNoHashFirstOption;
+
+    @Option(name = "--pg-routine-body-no-skip-matched-analysis",
+            usage = "pg-routine-body-no-skip-matched-analysis")
+    private boolean pgRoutineBodyNoSkipMatchedAnalysisOption =
+            !ISettings.DEFAULT_PG_ROUTINE_BODY_SKIP_MATCHED_ANALYSIS;
+
+    @Option(name = "--pg-routine-body-residual-batch-count",
+            metaVar = CliArgsLocalizationsBundle.N,
+            usage = "pg-routine-body-residual-batch-count")
+    private Integer pgRoutineBodyResidualBatchCountOption;
+
+    @Option(name = "--pg-routine-body-residual-batch-bytes",
+            metaVar = CliArgsLocalizationsBundle.N,
+            usage = "pg-routine-body-residual-batch-bytes")
+    private Long pgRoutineBodyResidualBatchBytesOption;
+
+    @Option(name = "--pg-catalog-cache-dir",
+            metaVar = CliArgsLocalizationsBundle.PATH, usage = "pg-catalog-cache-dir")
+    private String pgCatalogCacheDirOption;
+
+    @Option(name = "--pg-catalog-cache-max-mb", depends = "--pg-catalog-cache-dir",
+            metaVar = CliArgsLocalizationsBundle.N, usage = "pg-catalog-cache-max-mb")
+    private long pgCatalogCacheMaxMbOption = ISettings.DEFAULT_PG_CATALOG_CACHE_MAX_MB;
+
+    @Option(name = "--pg-catalog-cache-rows", depends = "--pg-catalog-cache-dir",
+            usage = "pg-catalog-cache-rows")
+    private boolean pgCatalogCacheRowsOption = ISettings.DEFAULT_PG_CATALOG_CACHE_ROWS;
+
+    @Option(name = "--pg-parallel-catalog-readers", metaVar = CliArgsLocalizationsBundle.N,
+            usage = "pg-parallel-catalog-readers")
+    private Integer pgParallelCatalogReadersOption;
 
     @Option(name = "--disable-auto-load", usage = "disable-auto-load")
     private boolean disableAutoLoad;
@@ -282,6 +384,21 @@ public class CliArgs extends AbstractSettings {
 
     CliMode getMode() {
         return mode;
+    }
+
+    public String getBatchManifestPath() {
+        return batchManifestPath;
+    }
+
+    String getProjectFileFilterPath() {
+        return projectFileFilterPath;
+    }
+
+    void prepareProjectFileFilterFrom(CliArgs parsedArgs) {
+        if (parsedArgs.projectFileFilterResolved) {
+            preparedProjectFileFilterPath = parsedArgs.projectFileFilterPath;
+            preparedProjectFileFilter = parsedArgs.getProjectFileFilter();
+        }
     }
 
     public boolean isClearLibCache() {
@@ -378,6 +495,30 @@ public class CliArgs extends AbstractSettings {
     @Override
     public boolean isIgnoreColumnOrder() {
         return ignoreColumnOrder;
+    }
+
+    @Override
+    public boolean isIgnoreSequenceCache() {
+        return ignoreSequenceCache;
+    }
+
+    @Override
+    public boolean isNoAlterTableOnly() {
+        return noAlterTableOnly;
+    }
+
+    @Override
+    public boolean isIgnoreColumnStatistics() {
+        return ignoreColumnStatistics;
+    }
+
+    @Override
+    public boolean isReadAuthors() {
+        // the CLI never consumes per-object author metadata (pg_dbo_timestamp)
+        // and project export persists SQL only, so skip the dbots_event_data
+        // join in every JDBC catalog query; the core default stays true for
+        // IDE compatibility
+        return false;
     }
 
     @Override
@@ -542,6 +683,20 @@ public class CliArgs extends AbstractSettings {
     }
 
     @Override
+    public int getJdbcFetchSize() {
+        return jdbcFetchSize;
+    }
+
+    @Override
+    public boolean isCollectObjectReferences() {
+        return collectObjectReferences;
+    }
+
+    void setCollectObjectReferences(boolean collectObjectReferences) {
+        this.collectObjectReferences = collectObjectReferences;
+    }
+
+    @Override
     public boolean isDisableAutoLoad() {
         return disableAutoLoad;
     }
@@ -554,8 +709,8 @@ public class CliArgs extends AbstractSettings {
     public CliArgs shallowCopy() {
         var args = new CliArgs();
         args.addTransaction = addTransaction;
-        args.allowedDangers = allowedDangers;
-        args.allowedTypes = allowedTypes;
+        args.allowedDangers = new ArrayList<>(allowedDangers);
+        args.allowedTypes = new ArrayList<>(allowedTypes);
         args.clearLibCache = clearLibCache;
         args.commentsToEnd = commentsToEnd;
         args.concurrentlyMode = concurrentlyMode;
@@ -568,26 +723,33 @@ public class CliArgs extends AbstractSettings {
         args.generateExistDoBlock = generateExistDoBlock;
         args.generateExists = generateExists;
         args.graphDepth = graphDepth;
-        args.graphFilterTypes = graphFilterTypes;
+        args.graphFilterTypes = new ArrayList<>(graphFilterTypes);
         args.graphInvertFilter = graphInvertFilter;
-        args.graphNames = graphNames;
+        args.graphNames = new ArrayList<>(graphNames);
         args.graphReverse = graphReverse;
         args.ignoreColumnOrder = ignoreColumnOrder;
+        args.ignoreColumnStatistics = ignoreColumnStatistics;
         args.ignoreConcurrentModification = ignoreConcurrentModification;
         args.ignoreErrors = ignoreErrors;
-        args.ignoreLists = ignoreLists;
+        args.ignoreLists = new ArrayList<>(ignoreLists);
         args.ignorePrivileges = ignorePrivileges;
         args.ignoreSchemaListPath = ignoreSchemaListPath;
+        args.ignoreSequenceCache = ignoreSequenceCache;
         args.inCharsetName = inCharsetName;
+        args.jdbcFetchSize = jdbcFetchSize;
         args.keepNewlines = keepNewlines;
         args.libSafeMode = libSafeMode;
         args.mode = mode;
+        args.batchManifestPath = batchManifestPath;
+        args.projectFileFilterPath = projectFileFilterPath;
+        args.setProjectFileFilter(getProjectFileFilter());
         args.newSrc = newSrc;
+        args.noAlterTableOnly = noAlterTableOnly;
         args.oldSrc = oldSrc;
         args.outCharsetName = outCharsetName;
         args.outputTarget = outputTarget;
-        args.postFilePath = postFilePath;
-        args.preFilePath = preFilePath;
+        args.postFilePath = new ArrayList<>(postFilePath);
+        args.preFilePath = new ArrayList<>(preFilePath);
         args.projUpdate = projUpdate;
         args.structureFile = structureFile;
         args.runOnDb = runOnDb;
@@ -595,18 +757,27 @@ public class CliArgs extends AbstractSettings {
         args.safeMode = safeMode;
         args.selectedOnly = selectedOnly;
         args.simplifyView = simplifyView;
-        args.sourceLibs = sourceLibs;
-        args.sourceLibsWithoutPriv = sourceLibsWithoutPriv;
-        args.sourceLibXmls = sourceLibXmls;
+        args.sourceLibs = new ArrayList<>(sourceLibs);
+        args.sourceLibsWithoutPriv = new ArrayList<>(sourceLibsWithoutPriv);
+        args.sourceLibXmls = new ArrayList<>(sourceLibXmls);
         args.stopNotAllowed = stopNotAllowed;
-        args.targetLibs = targetLibs;
-        args.targetLibsWithoutPriv = targetLibsWithoutPriv;
-        args.targetLibXmls = targetLibXmls;
+        args.targetLibs = new ArrayList<>(targetLibs);
+        args.targetLibsWithoutPriv = new ArrayList<>(targetLibsWithoutPriv);
+        args.targetLibXmls = new ArrayList<>(targetLibXmls);
         args.timeZone = timeZone;
         args.usingTypeCastOff = usingTypeCastOff;
         args.provider = provider;
         args.clusterName = clusterName;
         args.parallelLoad = parallelLoad;
+        args.setPgRoutineBodyHashFirst(isPgRoutineBodyHashFirst());
+        args.setPgRoutineBodySkipMatchedAnalysis(isPgRoutineBodySkipMatchedAnalysis());
+        args.setPgRoutineBodyResidualBatchCount(getPgRoutineBodyResidualBatchCount());
+        args.setPgRoutineBodyResidualBatchBytes(getPgRoutineBodyResidualBatchBytes());
+        args.setPgCatalogCacheDir(getPgCatalogCacheDir());
+        args.setPgCatalogCacheMaxMb(getPgCatalogCacheMaxMb());
+        args.setPgCatalogCacheRows(isPgCatalogCacheRows());
+        args.setPgParallelCatalogReaders(getPgParallelCatalogReaders());
+        args.collectObjectReferences = collectObjectReferences;
         args.disableAutoLoad = disableAutoLoad;
         args.simplifyNotNull = simplifyNotNull;
         args.additionalDepsPath = additionalDepsPath;
@@ -627,8 +798,26 @@ public class CliArgs extends AbstractSettings {
      * otherwise false
      */
     public boolean parse(String[] args) throws CmdLineException {
+        // reset parse buffers: null / false means "absent on this command line"
+        projectFileFilterResolved = false;
+        parallelLoadOption = false;
+        noParallelLoadOption = false;
+        pgRoutineBodyHashFirstOption = false;
+        pgRoutineBodyNoHashFirstOption = false;
+        pgRoutineBodyNoSkipMatchedAnalysisOption = !isPgRoutineBodySkipMatchedAnalysis();
+        pgRoutineBodyResidualBatchCountOption = null;
+        pgRoutineBodyResidualBatchBytesOption = null;
+        jdbcFetchSizeOption = null;
+        pgCatalogCacheDirOption = null;
+        pgCatalogCacheMaxMbOption = getPgCatalogCacheMaxMb();
+        pgCatalogCacheRowsOption = isPgCatalogCacheRows();
+        pgParallelCatalogReadersOption = null;
+
         if (args.length != 0) {
-            new CmdLineParser(this).parseArgument(args);
+            CmdLineParser parser = new CmdLineParser(this, ParserProperties.defaults()
+                    .withOptionValueDelimiter(OPTION_VALUE_DELIMITER));
+            checkSpaceJoinedOptions(parser, args);
+            parser.parseArgument(args);
         } else {
             // show help instead of failing for 0 args
             zhelp = true;
@@ -645,6 +834,45 @@ public class CliArgs extends AbstractSettings {
             listCharsets();
             return false;
         }
+        if (jdbcFetchSizeOption != null && jdbcFetchSizeOption < 0) {
+            badArgs(Messages.CliArgs_error_jdbc_fetch_size_negative);
+        }
+        if (pgRoutineBodyResidualBatchCountOption != null
+                && pgRoutineBodyResidualBatchCountOption <= 0) {
+            badArgs(Messages.CliArgs_error_pg_routine_body_residual_batch_count_non_positive);
+        }
+        if (pgRoutineBodyResidualBatchBytesOption != null
+                && pgRoutineBodyResidualBatchBytesOption <= 0) {
+            badArgs(Messages.CliArgs_error_pg_routine_body_residual_batch_bytes_non_positive);
+        }
+        if (pgCatalogCacheMaxMbOption <= 0) {
+            badArgs(Messages.CliArgs_error_pg_catalog_cache_max_mb_non_positive);
+        }
+        if (pgParallelCatalogReadersOption != null && pgParallelCatalogReadersOption < 0) {
+            badArgs(Messages.CliArgs_error_pg_parallel_catalog_readers_negative);
+        }
+
+        checkRollbackSwitchConflicts();
+
+        // Resolve effective values from CLI defaults and explicit overrides.
+        parallelLoad = !noParallelLoadOption;
+        if (jdbcFetchSizeOption != null) {
+            jdbcFetchSize = jdbcFetchSizeOption;
+        }
+        setPgRoutineBodyHashFirst(resolvePgRoutineBodyHashFirst());
+        setPgRoutineBodySkipMatchedAnalysis(!pgRoutineBodyNoSkipMatchedAnalysisOption);
+        if (pgRoutineBodyResidualBatchCountOption != null) {
+            setPgRoutineBodyResidualBatchCount(pgRoutineBodyResidualBatchCountOption);
+        }
+        if (pgRoutineBodyResidualBatchBytesOption != null) {
+            setPgRoutineBodyResidualBatchBytes(pgRoutineBodyResidualBatchBytesOption);
+        }
+        if (pgCatalogCacheDirOption != null) {
+            setPgCatalogCacheDir(pgCatalogCacheDirOption);
+        }
+        setPgCatalogCacheMaxMb(pgCatalogCacheMaxMbOption);
+        setPgCatalogCacheRows(pgCatalogCacheRowsOption);
+        setPgParallelCatalogReaders(resolvePgParallelCatalogReaders());
 
         if (clearLibCache && CliMode.DIFF == mode && (oldSrc == null || newSrc == null)) {
             return true;
@@ -653,6 +881,27 @@ public class CliArgs extends AbstractSettings {
         checkModeParams();
         checkDbTypesParam();
         checkParams();
+
+        if (projectFileFilterPath != null) {
+            ProjectFileFilter prepared = null;
+            if (projectFileFilterPath.equals(preparedProjectFileFilterPath)) {
+                prepared = preparedProjectFileFilter;
+            }
+            preparedProjectFileFilterPath = null;
+            preparedProjectFileFilter = null;
+
+            if (prepared != null) {
+                setProjectFileFilter(prepared);
+            } else {
+                try {
+                    setProjectFileFilter(ProjectFileFilter.parse(Path.of(projectFileFilterPath)));
+                } catch (IOException | InvalidPathException ex) {
+                    badArgs(Messages.CliArgs_error_project_file_filter
+                            .formatted(projectFileFilterPath, ex.getMessage()));
+                }
+            }
+            projectFileFilterResolved = true;
+        }
 
         if (CliMode.DIFF == mode) {
             if (oldSrc == null || newSrc == null) {
@@ -672,9 +921,73 @@ public class CliArgs extends AbstractSettings {
         return true;
     }
 
+    /**
+     * Rejects combinations of an override with explicit options that require
+     * the behavior it disables. Implicit defaults cannot create a conflict.
+     */
+    private void checkRollbackSwitchConflicts() throws CmdLineException {
+        badArgConflict(parallelLoadOption && noParallelLoadOption,
+                "--parallel-load", "--no-parallel-load"); //$NON-NLS-1$ //$NON-NLS-2$
+        badArgConflict(pgRoutineBodyHashFirstOption && pgRoutineBodyNoHashFirstOption,
+                "--pg-routine-body-hash-first", "--pg-routine-body-no-hash-first"); //$NON-NLS-1$ //$NON-NLS-2$
+        // Hash-first exchange requires paired parallel comparison loading.
+        badArgConflict(pgRoutineBodyHashFirstOption && noParallelLoadOption,
+                "--pg-routine-body-hash-first", "--no-parallel-load"); //$NON-NLS-1$ //$NON-NLS-2$
+        // residual batching and the catalog cache act only on the hash-first
+        // path; both rollback switches disable that path
+        badArgConflict(pgRoutineBodyResidualBatchCountOption != null && pgRoutineBodyNoHashFirstOption,
+                "--pg-routine-body-residual-batch-count", "--pg-routine-body-no-hash-first"); //$NON-NLS-1$ //$NON-NLS-2$
+        badArgConflict(pgRoutineBodyResidualBatchBytesOption != null && pgRoutineBodyNoHashFirstOption,
+                "--pg-routine-body-residual-batch-bytes", "--pg-routine-body-no-hash-first"); //$NON-NLS-1$ //$NON-NLS-2$
+        badArgConflict(pgCatalogCacheDirOption != null && pgRoutineBodyNoHashFirstOption,
+                "--pg-catalog-cache-dir", "--pg-routine-body-no-hash-first"); //$NON-NLS-1$ //$NON-NLS-2$
+        badArgConflict(pgRoutineBodyResidualBatchCountOption != null && noParallelLoadOption,
+                "--pg-routine-body-residual-batch-count", "--no-parallel-load"); //$NON-NLS-1$ //$NON-NLS-2$
+        badArgConflict(pgRoutineBodyResidualBatchBytesOption != null && noParallelLoadOption,
+                "--pg-routine-body-residual-batch-bytes", "--no-parallel-load"); //$NON-NLS-1$ //$NON-NLS-2$
+        badArgConflict(pgCatalogCacheDirOption != null && noParallelLoadOption,
+                "--pg-catalog-cache-dir", "--no-parallel-load"); //$NON-NLS-1$ //$NON-NLS-2$
+    }
+
+    /**
+     * Enables hash-first body exchange for parallel PostgreSQL DIFF
+     * comparisons. Other modes and dialects keep it disabled, while an
+     * explicit positive option still reaches mode and database validation.
+     */
+    private boolean resolvePgRoutineBodyHashFirst() {
+        if (pgRoutineBodyNoHashFirstOption) {
+            return false;
+        }
+        if (pgRoutineBodyHashFirstOption) {
+            return true;
+        }
+        return parallelLoad && CliMode.DIFF == mode && PG.equals(dbType);
+    }
+
+    /**
+     * Applies the CLI reader-lane default to PostgreSQL only. The setting is
+     * read by the PostgreSQL JDBC loader alone, so other dialects keep the
+     * core default and the profile does not follow them, exactly as
+     * hash-first does not. Unlike hash-first this is not restricted to DIFF:
+     * the lanes speed up any load from a live PostgreSQL database, including
+     * PARSE and GRAPH. An explicit option still reaches database validation,
+     * which rejects it outside PostgreSQL.
+     */
+    private int resolvePgParallelCatalogReaders() {
+        if (pgParallelCatalogReadersOption != null) {
+            return pgParallelCatalogReadersOption;
+        }
+        return PG.equals(dbType) ? DEFAULT_CLI_PG_PARALLEL_CATALOG_READERS
+                : ISettings.DEFAULT_PG_PARALLEL_CATALOG_READERS;
+    }
+
     private void checkParams() throws CmdLineException {
-        if (newSrc == null) {
+        if (newSrc == null && CliMode.BATCH != mode) {
             badArgs(Messages.CliArgs_error_source_null);
+        }
+
+        if (CliMode.BATCH == mode && batchManifestPath == null) {
+            badArgs(Messages.CliArgs_error_batch_manifest_required);
         }
 
         if (CliMode.DIFF == mode) {
@@ -699,6 +1012,11 @@ public class CliArgs extends AbstractSettings {
 
     private void checkModeParams() throws CmdLineException {
         // argument can be used only with mode
+        badArgWithCorrectModes(batchManifestPath != null, "--batch-manifest", CliMode.BATCH); //$NON-NLS-1$
+        badArgWithCorrectModes(projectFileFilterPath != null, "--project-file-filter", //$NON-NLS-1$
+                CliMode.DIFF, CliMode.PARSE, CliMode.GRAPH);
+        badArgWithCorrectModes(newSrc != null, "--source (-s)", //$NON-NLS-1$
+                CliMode.DIFF, CliMode.PARSE, CliMode.GRAPH);
         badArgWithCorrectModes(oldSrc != null, "--target (-t)", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(addTransaction, "--add-transaction (-X)", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(runOnDb != null, "--run-on (-R)", CliMode.DIFF); //$NON-NLS-1$
@@ -712,6 +1030,9 @@ public class CliArgs extends AbstractSettings {
         badArgWithCorrectModes(!preFilePath.isEmpty(), "--pre-script", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(!postFilePath.isEmpty(), "--post-script", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(ignoreColumnOrder, "--ignore-column-order", CliMode.DIFF); //$NON-NLS-1$
+        badArgWithCorrectModes(ignoreSequenceCache, "--ignore-sequence-cache", CliMode.DIFF); //$NON-NLS-1$
+        badArgWithCorrectModes(noAlterTableOnly, "--no-alter-table-only", CliMode.DIFF); //$NON-NLS-1$
+        badArgWithCorrectModes(ignoreColumnStatistics, "--ignore-column-statistics", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(generateConstraintNotValid, "--generate-constraint-not-valid (-v)", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(usingTypeCastOff, "--using-off", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(dataMovementMode, "--migrate-data", CliMode.DIFF); //$NON-NLS-1$
@@ -734,6 +1055,17 @@ public class CliArgs extends AbstractSettings {
         badArgWithCorrectModes(additionalDepsPath != null, "--additional-dependencies", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(isUseActualVersionSyntax, "--use-actual-syntax", CliMode.DIFF); //$NON-NLS-1$
         badArgWithCorrectModes(simplifyNotNull, "--simplify-not-null", CliMode.DIFF, CliMode.PARSE); //$NON-NLS-1$
+        badArgWithCorrectModes(isPgRoutineBodyHashFirst(), "--pg-routine-body-hash-first", CliMode.DIFF); //$NON-NLS-1$
+        badArgWithCorrectModes(pgRoutineBodyNoHashFirstOption,
+                "--pg-routine-body-no-hash-first", CliMode.DIFF); //$NON-NLS-1$
+        badArgWithCorrectModes(pgRoutineBodyNoSkipMatchedAnalysisOption,
+                "--pg-routine-body-no-skip-matched-analysis", CliMode.DIFF); //$NON-NLS-1$
+        badArgWithCorrectModes(pgRoutineBodyResidualBatchCountOption != null,
+                "--pg-routine-body-residual-batch-count", CliMode.DIFF); //$NON-NLS-1$
+        badArgWithCorrectModes(pgRoutineBodyResidualBatchBytesOption != null,
+                "--pg-routine-body-residual-batch-bytes", CliMode.DIFF); //$NON-NLS-1$
+        badArgWithCorrectModes(pgCatalogCacheDirOption != null,
+                "--pg-catalog-cache-dir", CliMode.DIFF); //$NON-NLS-1$
     }
 
     private void checkDbTypesParam() throws CmdLineException {
@@ -744,6 +1076,19 @@ public class CliArgs extends AbstractSettings {
         badArgWithWrongDbType(commentsToEnd, "--comments-to-end", CH); //$NON-NLS-1$
         badArgWithWrongDbType(null != clusterName, "--cluster-name", PG, MS); //$NON-NLS-1$
         badArgWithWrongDbType(simplifyNotNull, "--simplify-not-null", MS, CH); //$NON-NLS-1$
+        badArgWithWrongDbType(isPgRoutineBodyHashFirst(), "--pg-routine-body-hash-first", MS, CH); //$NON-NLS-1$
+        badArgWithWrongDbType(pgRoutineBodyNoHashFirstOption,
+                "--pg-routine-body-no-hash-first", MS, CH); //$NON-NLS-1$
+        badArgWithWrongDbType(pgRoutineBodyNoSkipMatchedAnalysisOption,
+                "--pg-routine-body-no-skip-matched-analysis", MS, CH); //$NON-NLS-1$
+        badArgWithWrongDbType(pgRoutineBodyResidualBatchCountOption != null,
+                "--pg-routine-body-residual-batch-count", MS, CH); //$NON-NLS-1$
+        badArgWithWrongDbType(pgRoutineBodyResidualBatchBytesOption != null,
+                "--pg-routine-body-residual-batch-bytes", MS, CH); //$NON-NLS-1$
+        badArgWithWrongDbType(pgCatalogCacheDirOption != null,
+                "--pg-catalog-cache-dir", MS, CH); //$NON-NLS-1$
+        badArgWithWrongDbType(pgParallelCatalogReadersOption != null,
+                "--pg-parallel-catalog-readers", MS, CH); //$NON-NLS-1$
     }
 
     private void badArgWithCorrectModes(boolean condition, String param, CliMode... modes) throws CmdLineException {
@@ -759,8 +1104,58 @@ public class CliArgs extends AbstractSettings {
         }
     }
 
+    private void badArgConflict(boolean condition, String arg, String conflictingArg)
+            throws CmdLineException {
+        if (condition) {
+            badArgs(Messages.CliArgs_error_conflicting_options.formatted(arg, conflictingArg));
+        }
+    }
+
     private void badArgs(String message) throws CmdLineException {
         throw new CmdLineException(null, message, null);
+    }
+
+    /**
+     * Rejects a single argument token that joins a known option name and its
+     * value with whitespace, such as {@code "--parallel-load true"}. Only an
+     * unquoted wrapper variable produces such a token, and no parser reading
+     * can recover the intent, so it is reported instead of being reinterpreted.
+     *
+     * @param parser parser holding the declared options of this bean
+     * @param args   raw argument array
+     */
+    private void checkSpaceJoinedOptions(CmdLineParser parser, String[] args) throws CmdLineException {
+        for (String arg : args) {
+            if (arg == null || arg.isEmpty() || arg.charAt(0) != '-') {
+                continue;
+            }
+            int space = indexOfWhitespace(arg);
+            if (space > 0 && isKnownOption(parser, arg.substring(0, space))) {
+                badArgs(Messages.CliArgs_error_space_joined_option
+                        .formatted(arg, arg.substring(0, space)));
+            }
+        }
+    }
+
+    private int indexOfWhitespace(String arg) {
+        for (int i = 0; i < arg.length(); i++) {
+            if (Character.isWhitespace(arg.charAt(i))) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private boolean isKnownOption(CmdLineParser parser, String name) {
+        for (OptionHandler<?> handler : parser.getOptions()) {
+            if (handler.option instanceof NamedOptionDef named
+                    && (name.equals(named.name()) || containsInArray(name, named.aliases()))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void printUsage() {

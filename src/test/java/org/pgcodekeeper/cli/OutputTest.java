@@ -53,6 +53,8 @@ class OutputTest {
                 Arguments.of(new FailGraphNameArgumentsProvider()),
                 Arguments.of(new FailGraphArgumentsProvider()),
                 Arguments.of(new IgnoreColumnOrderArgumentsProvider()),
+                Arguments.of(new SequenceCacheArgumentsProvider()),
+                Arguments.of(new IgnoreSequenceCacheArgumentsProvider()),
                 Arguments.of(new FailGenerateExistDoBlock()));
     }
 
@@ -534,6 +536,62 @@ class IgnoreColumnOrderArgumentsProvider extends ArgumentsProvider {
         Path fOriginal = getFile(FILES_POSTFIX.ORIGINAL_SQL);
 
         return new String[]{"--ignore-column-order", fNew.toString(), fOriginal.toString()};
+    }
+
+    @Override
+    public String output() {
+        return "\n";
+    }
+}
+
+/**
+ * The cache of a sequence is migrated like anything else by default, for a
+ * sequence of its own and for the identity of a column alike.
+ */
+class SequenceCacheArgumentsProvider extends ArgumentsProvider {
+
+    SequenceCacheArgumentsProvider() {
+        super("modify_sequence_cache");
+    }
+
+    @Override
+    public String[] args() throws URISyntaxException, IOException {
+        Path fNew = getFile(FILES_POSTFIX.NEW_SQL);
+        Path fOriginal = getFile(FILES_POSTFIX.ORIGINAL_SQL);
+
+        return new String[]{fNew.toString(), fOriginal.toString()};
+    }
+
+    @Override
+    public String output() {
+        return """
+                SET search_path = pg_catalog;
+
+                ALTER SEQUENCE public.s
+                \tCACHE 10;
+
+                ALTER SEQUENCE public.t_id_seq
+                \tCACHE 10;
+                """;
+    }
+}
+
+/**
+ * The same pair with {@code --ignore-sequence-cache}: nothing at all is left to
+ * migrate.
+ */
+class IgnoreSequenceCacheArgumentsProvider extends ArgumentsProvider {
+
+    IgnoreSequenceCacheArgumentsProvider() {
+        super("modify_sequence_cache");
+    }
+
+    @Override
+    public String[] args() throws URISyntaxException, IOException {
+        Path fNew = getFile(FILES_POSTFIX.NEW_SQL);
+        Path fOriginal = getFile(FILES_POSTFIX.ORIGINAL_SQL);
+
+        return new String[]{"--ignore-sequence-cache", fNew.toString(), fOriginal.toString()};
     }
 
     @Override
