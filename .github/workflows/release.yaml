@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*.*.*'
 
+env:
+  # single source of truth for the matching pgcodekeeper-core commit;
+  # README build instructions read this value instead of repeating it
+  CORE_REF: e61d3417c6a65247c190d9f34d843d5863144ccf
+
 jobs:
   build:
     runs-on: macos-latest
@@ -13,14 +18,29 @@ jobs:
       - name: checkout
         uses: actions/checkout@v6
 
+      - name: checkout matching core release
+        uses: actions/checkout@v6
+        with:
+          repository: Fenoman/pgcodekeeper-core
+          ref: ${{ env.CORE_REF }}
+          path: pgcodekeeper-core
+          persist-credentials: false
+
       - name: set up JDK 17
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: build core
+        run: >-
+          mvn -B -ntp -f pgcodekeeper-core/pom.xml clean install -DskipTests
+          -Dmaven.repo.local="${{ runner.temp }}/pgck-release-m2/repository"
+
       - name: build
-        run: mvn -B -ntp clean package -DskipTests
+        run: >-
+          mvn -B -ntp clean verify
+          -Dmaven.repo.local="${{ runner.temp }}/pgck-release-m2/repository"
 
       - name: set version
         run: echo "RELEASE_VERSION=$(echo ${GITHUB_REF#refs/*/} | cut -c 2-)" >> $GITHUB_ENV
