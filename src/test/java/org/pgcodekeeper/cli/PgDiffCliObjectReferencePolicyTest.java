@@ -102,6 +102,26 @@ class PgDiffCliObjectReferencePolicyTest {
                 "the caller's setting must survive the update");
     }
 
+    /**
+     * The dependency graph is walked over the model itself; the only readers of
+     * the file-to-object-location index are the script mode, the plug-in's
+     * analysis replay and the library merge, and none of them is on this path.
+     */
+    @Test
+    void graphDisablesLoaderIndexAndRestoresSetting() throws Exception {
+        Path source = dump("graph-source.sql");
+        var args = new TrackingCliArgs();
+        args.parse(new String[] { "--mode", "GRAPH", "--graph-name", "public.policy_probe",
+                source.toString() });
+
+        new PgDiffCli(args).analyzeDependencies();
+
+        Assertions.assertEquals(1, args.disabledReads.get(),
+                "the graphed source must be loaded without the reference index");
+        Assertions.assertTrue(args.isCollectObjectReferences(),
+                "the caller's setting must survive the graph run");
+    }
+
     @Test
     void publicLoaderOutsideComparisonKeepsReferenceIndexEnabled() throws Exception {
         Path dump = dump("source.sql");

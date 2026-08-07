@@ -106,9 +106,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   blocks of 512. `--no-parallel-load` selects sequential loading and
   `--jdbc-fetch-size 0` the driver default, on any dialect. The three extra
   catalog readers and the hash-first body exchange stay PostgreSQL-only.
-- A comparison, a project export and a project update no longer build the
-  object-reference index. Nothing in the command-line tool reads it - it exists
-  for the editor - so building it spent time and memory on every run.
+- A comparison, a project export, a project update and a dependency graph no
+  longer build the object-reference index. Nothing in the command-line tool
+  reads it - it exists for the editor - so building it spent time and memory on
+  every run.
 - Batch mode builds the dependency graphs of a loaded comparison once and reuses
   them for every output, instead of rebuilding them for each script it writes.
 - A run no longer reads the per-object author metadata that neither a comparison

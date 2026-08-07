@@ -23,6 +23,8 @@ import org.pgcodekeeper.core.database.api.loader.ILoader;
 import org.pgcodekeeper.core.database.api.loader.ILoaderFactory;
 import org.pgcodekeeper.core.database.base.loader.LoaderFactories;
 import org.pgcodekeeper.core.dependencieslist.DependenciesReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -32,6 +34,8 @@ import java.util.Collections;
 import java.util.List;
 
 public final class PgDiffCli {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PgDiffCli.class);
 
     private final CliArgs arguments;
 
@@ -111,6 +115,37 @@ public final class PgDiffCli {
 
             assertErrorsEmpty();
             return script;
+        } finally {
+            arguments.setCollectObjectReferences(previous);
+        }
+    }
+
+    /**
+     * Reads the source and returns the dependency lines the graph mode prints.
+     * <p>
+     * The walk goes over the model, so the file-to-object-location index the
+     * loader can build is dead weight here: its only readers are the script
+     * mode, the plug-in's analysis replay and the library merge. The caller's
+     * setting is restored, because it belongs to the caller and not to this
+     * run.
+     */
+    public List<String> analyzeDependencies() throws IOException, InterruptedException {
+        boolean previous = arguments.isCollectObjectReferences();
+        arguments.setCollectObjectReferences(false);
+        try {
+            ILoader dbLoader = getDatabaseLoader(arguments.getNewSrc(),
+                    arguments.getTargetLibXmls(), arguments.getTargetLibs(),
+                    arguments.getTargetLibsWithoutPriv());
+            LOG.info(Messages.Main_log_build_graph_deps);
+            List<String> dependencies = PgCodeKeeperApi.analyzeDependencies(dbLoader,
+                    arguments.getGraphNames(), arguments.getGraphDepth(), arguments.isGraphReverse(),
+                    arguments.getGraphFilterTypes(), arguments.isGraphInvertFilter());
+            // the contract diff, parse and batch all hold: a statement that did
+            // not load declares nothing, so the graph built without it is
+            // missing edges - and a deployment ordered off it would be wrong
+            // with nothing on stderr and exit 0 to say so
+            assertErrorsEmpty();
+            return dependencies;
         } finally {
             arguments.setCollectObjectReferences(previous);
         }

@@ -23,7 +23,6 @@ import org.kohsuke.args4j.CmdLineException;
 import org.pgcodekeeper.cli.localizations.Messages;
 import org.pgcodekeeper.core.DangerStatement;
 import org.pgcodekeeper.core.api.PgCodeKeeperApi;
-import org.pgcodekeeper.core.database.api.loader.ILoader;
 import org.pgcodekeeper.core.utils.FileUtils;
 import org.pgcodekeeper.core.utils.UnixPrintWriter;
 import org.slf4j.Logger;
@@ -231,22 +230,12 @@ public final class Application {
         var diff = new PgDiffCli(arguments);
         List<String> dependencies;
         // the try covers the load, not just the construction of its loader:
-        // getDatabaseLoader only picks a loader for the source format and never
-        // reads anything, so a catch around it alone could never see a load
-        // error. analyzeDependencies below is where the source is actually read,
-        // and its errors land in the same list every other mode gates on
+        // picking a loader for the source format never reads anything, so a
+        // catch around that alone could never see a load error. The load
+        // happens inside analyzeDependencies, and its errors land in the same
+        // list every other mode gates on
         try {
-            ILoader dbLoader = diff.getDatabaseLoader(arguments.getNewSrc(),
-                    arguments.getTargetLibXmls(), arguments.getTargetLibs(), arguments.getTargetLibsWithoutPriv());
-            LOG.info(Messages.Main_log_build_graph_deps);
-            dependencies = PgCodeKeeperApi.analyzeDependencies(dbLoader, arguments.getGraphNames(),
-                    arguments.getGraphDepth(), arguments.isGraphReverse(),
-                    arguments.getGraphFilterTypes(), arguments.isGraphInvertFilter());
-            // the contract diff, parse and batch all hold: a statement that did
-            // not load declares nothing, so the graph built without it is
-            // missing edges - and a deployment ordered off it would be wrong
-            // with nothing on stderr and exit 0 to say so
-            diff.assertErrorsEmpty();
+            dependencies = diff.analyzeDependencies();
         } catch (IllegalStateException ex) {
             printError(diff, ex);
             return false;
