@@ -13,6 +13,10 @@
 
 ### Исправлено
 
+## [15.2.0] - 2026-08-10
+
+### Исправлено
+
 - Исправлены ложные различия при сравнении объектов библиотек с включенной опцией «игнорировать привилегии».
 
 ## [15.1.0] - 2026-07-30
@@ -248,7 +252,8 @@
 - Исправлена ошибка с работой настроек при сохранении объектов в проект.
 - Исправлены ложные различия при игнорировании порядка колонок таблицы.
 
-[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.1.0...HEAD
+[Новое]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.2.0...HEAD
+[15.2.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.1.0...v15.2.0
 [15.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.0.0...v15.1.0
 [15.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.7.0...v15.0.0
 [14.7.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.6.0...v14.7.0
