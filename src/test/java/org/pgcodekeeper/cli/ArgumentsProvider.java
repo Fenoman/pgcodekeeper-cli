@@ -52,6 +52,10 @@ public abstract class ArgumentsProvider implements AutoCloseable {
     }
 
     protected final Path getFile(FILES_POSTFIX postfix) throws URISyntaxException, IOException {
+        return getFile(postfix, resName);
+    }
+
+    protected final Path getFile(FILES_POSTFIX postfix, String resName) throws URISyntaxException, IOException{
         return TestUtils.getPathToResource(this.getClass(), resName + postfix);
     }
 
