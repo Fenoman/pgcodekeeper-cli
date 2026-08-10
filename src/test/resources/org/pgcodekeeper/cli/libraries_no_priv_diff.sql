@@ -1,11 +1,5 @@
 SET search_path = pg_catalog;
 
-GRANT SELECT ON TABLE public.test TO test_role;
-
-GRANT INSERT ON TABLE public.test TO test_role;
-
-GRANT UPDATE ON TABLE public.test TO test_role;
-
 ALTER TABLE public.test
 	DROP CONSTRAINT text_check;
 

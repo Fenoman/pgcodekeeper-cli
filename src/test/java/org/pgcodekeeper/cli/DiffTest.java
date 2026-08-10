@@ -340,6 +340,11 @@ class LibrariesNoPrivArgumentsProvider extends LibrariesArgumentsProvider {
                 "-t", projectDir.toString(), "--tgt-lib-no-priv", lib.toString(),
                 "-s", fNew.toString()};
     }
+
+    @Override
+    public Path getPredefinedResultFile() throws URISyntaxException, IOException {
+        return getFile(FILES_POSTFIX.DIFF_SQL, "libraries_no_priv");
+    }
 }
 
 /**
