@@ -41,7 +41,7 @@ class CoreDependencyIdentityTest {
             coordinates.load(in);
         }
 
-        assertEquals("15.1.0-neo1", coordinates.getProperty("version"),
+        assertEquals("15.3.0-neo1", coordinates.getProperty("version"),
                 "Unexpected pgcodekeeper-core version");
         assertNotNull(loader.getResource(PACKED_CACHE_MARKER),
                 "Packed PostgreSQL catalog cache is absent from pgcodekeeper-core");

@@ -238,11 +238,11 @@ M2="$(mktemp -d)"
 mvn -f ../pgcodekeeper-core/pom.xml clean install \
   -Dmaven.repo.local="$M2"
 mvn clean verify -Dmaven.repo.local="$M2"
-cmp ../pgcodekeeper-core/target/pgcodekeeper-core-15.1.0-neo1.jar \
-  "$M2/org/pgcodekeeper/pgcodekeeper-core/15.1.0-neo1/pgcodekeeper-core-15.1.0-neo1.jar"
+cmp ../pgcodekeeper-core/target/pgcodekeeper-core-15.3.0-neo1.jar \
+  "$M2/org/pgcodekeeper/pgcodekeeper-core/15.3.0-neo1/pgcodekeeper-core-15.3.0-neo1.jar"
 ```
 
-The separate `15.1.0-neo1` Core coordinate and the dependency identity test
+The separate `15.3.0-neo1` Core coordinate and the dependency identity test
 prevent a stale stock Core from being bundled silently. The isolated repository
 also makes the source-to-binary relationship reproducible. The Core commit is
 pinned once, by `env.CORE_REF` in `.github/workflows/release.yaml`; both the
