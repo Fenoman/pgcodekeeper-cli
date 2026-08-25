@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [15.3.0] - 2026-08-10
+
+### Added
+
+- Added generation of a migration script taking into account the PostgreSQL version when the `Use current database version syntax to generate migration script` setting is enabled.
+
+### Security
+
+- Increased versions of org.apache.httpcomponents libraries due to CVE-2026-64607, CVE-2026-54399, CVE-2026-54428.
+
 ## [15.2.0] - 2026-08-10
 
 ### Fixed
@@ -256,7 +266,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed a bug with the settings when saving objects to a project.
 - Fixed false differences when ignoring table column order.
 
-[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.2.0...HEAD
+[Unreleased]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.3.0...HEAD
+[15.3.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.2.0...v15.3.0
 [15.2.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.1.0...v15.2.0
 [15.1.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v15.0.0...v15.1.0
 [15.0.0]: https://github.com/pgcodekeeper/pgcodekeeper-cli/compare/v14.7.0...v15.0.0
